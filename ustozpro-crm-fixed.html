@@ -1,0 +1,2724 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>UstozPro CRM - Fixed</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --primary:#3b82f6;
+            --secondary:#8b5cf6;
+            --success:#10b981;
+            --warning:#f59e0b;
+            --danger:#ef4444;
+            --gray:#94a3b8;
+            --gray-2:#64748b;
+            --border-color:rgba(255,255,255,0.08);
+            --card-bg:rgba(15,23,42,0.72);
+            --sidebar-width:280px;
+        }
+
+        body {
+            font-family:'Plus Jakarta Sans', sans-serif;
+            background:linear-gradient(135deg,#020617 0%,#0f172a 54%,#172554 100%);
+            min-height:100vh;
+            color:#e2e8f0;
+        }
+
+        .app { display:flex; min-height:100vh; }
+        .hidden { display:none!important; }
+        .w-full { width:100%; }
+        .text-center { text-align:center; }
+        .text-success { color:#34d399; }
+        .text-danger { color:#f87171; }
+        .muted-small { color:var(--gray); font-size:11px; }
+
+        .sidebar {
+            width:var(--sidebar-width);
+            background:rgba(2,6,23,0.96);
+            backdrop-filter:blur(26px);
+            border-right:1px solid var(--border-color);
+            position:fixed;
+            left:0;
+            top:0;
+            bottom:0;
+            display:flex;
+            flex-direction:column;
+            z-index:1000;
+            transition:transform .25s ease;
+        }
+
+        .sidebar-header { padding:20px 16px; border-bottom:1px solid var(--border-color); }
+        .logo { display:flex; align-items:center; gap:12px; }
+        .logo-icon {
+            width:44px;
+            height:44px;
+            background:linear-gradient(135deg,var(--primary),var(--secondary));
+            border-radius:14px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:20px;
+            font-weight:800;
+            color:white;
+            flex-shrink:0;
+        }
+        .logo-text h2 { font-size:18px; font-weight:700; color:white; }
+        .logo-text span { font-size:10px; color:var(--gray); }
+
+        .sidebar-nav { flex:1; padding:16px 12px; overflow-y:auto; }
+        .nav-item {
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:12px 14px;
+            border-radius:12px;
+            color:var(--gray);
+            font-weight:500;
+            font-size:14px;
+            cursor:pointer;
+            transition:all .2s;
+            width:100%;
+            text-align:left;
+            background:transparent;
+            border:none;
+            overflow-wrap:anywhere;
+        }
+        .nav-item:hover { background:rgba(59,130,246,.10); color:#60a5fa; }
+        .nav-item.active {
+            background:linear-gradient(135deg,rgba(59,130,246,.22),rgba(139,92,246,.12));
+            color:white;
+        }
+
+        .sidebar-footer { padding:16px; border-top:1px solid var(--border-color); }
+        .user-card {
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:10px;
+            background:rgba(255,255,255,.035);
+            border-radius:14px;
+            margin-bottom:12px;
+            min-width:0;
+        }
+        .user-avatar {
+            width:40px;
+            height:40px;
+            background:linear-gradient(135deg,var(--primary),var(--secondary));
+            border-radius:12px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:700;
+            color:white;
+            flex-shrink:0;
+        }
+        .user-info { min-width:0; }
+        .user-info h4 { font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .user-info p { font-size:11px; color:var(--gray); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+        .main-content {
+            flex:1;
+            margin-left:var(--sidebar-width);
+            padding:24px 28px;
+            min-height:100vh;
+            min-width:0;
+        }
+
+        .mobile-menu-toggle {
+            display:none;
+            position:fixed;
+            top:16px;
+            left:16px;
+            z-index:1001;
+            background:rgba(15,23,42,.92);
+            backdrop-filter:blur(10px);
+            border:1px solid var(--border-color);
+            border-radius:12px;
+            width:44px;
+            height:44px;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            color:white;
+            font-size:20px;
+        }
+
+        .page-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:24px;
+            flex-wrap:wrap;
+            gap:16px;
+            min-width:0;
+        }
+        .page-title, .page-header > div { min-width:0; }
+        .page-title h1, .page-header h1 {
+            font-size:24px;
+            font-weight:700;
+            color:white;
+            line-height:1.25;
+            overflow-wrap:anywhere;
+        }
+        .page-title p { color:var(--gray); font-size:13px; margin-top:4px; }
+
+        .stats-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+            gap:16px;
+            margin-bottom:24px;
+        }
+        .stat-card {
+            background:var(--card-bg);
+            backdrop-filter:blur(18px);
+            border-radius:16px;
+            padding:18px;
+            border:1px solid var(--border-color);
+            min-width:0;
+            overflow-wrap:anywhere;
+        }
+        .stat-value { font-size:28px; font-weight:700; color:white; line-height:1.22; overflow-wrap:anywhere; }
+        .stat-label { color:var(--gray); font-size:13px; margin-top:6px; }
+
+        .card {
+            background:var(--card-bg);
+            backdrop-filter:blur(18px);
+            border-radius:16px;
+            padding:22px;
+            border:1px solid var(--border-color);
+            margin-bottom:22px;
+            min-width:0;
+            overflow-wrap:anywhere;
+        }
+        .card-title { font-size:18px; font-weight:600; color:white; margin-bottom:18px; line-height:1.25; }
+
+        .table-wrapper {
+            width:100%;
+            max-width:100%;
+            overflow-x:auto;
+            -webkit-overflow-scrolling:touch;
+            border-radius:14px;
+        }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        th {
+            text-align:left;
+            padding:13px 14px;
+            color:var(--gray);
+            font-weight:600;
+            font-size:10px;
+            text-transform:uppercase;
+            border-bottom:1px solid var(--border-color);
+            letter-spacing:0;
+        }
+        td {
+            padding:13px 14px;
+            border-bottom:1px solid rgba(255,255,255,.035);
+            color:#cbd5e1;
+            vertical-align:middle;
+            max-width:220px;
+            overflow-wrap:anywhere;
+        }
+        tr:hover td { background:rgba(59,130,246,.05); }
+        .ellipsis {
+            display:inline-block;
+            max-width:100%;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            vertical-align:bottom;
+        }
+
+        .compact-table table {
+            table-layout:fixed;
+            min-width:720px;
+        }
+        .compact-table th,
+        .compact-table td {
+            padding:10px 12px;
+            font-size:12px;
+        }
+        .compact-table .col-date { width:92px; }
+        .compact-table .col-student { width:170px; }
+        .compact-table .col-group { width:160px; }
+        .compact-table .col-amount { width:128px; }
+        .compact-table .col-type { width:94px; }
+        .compact-table .col-id { width:88px; }
+        .compact-table .col-action { width:58px; }
+
+        .badge {
+            padding:4px 10px;
+            border-radius:999px;
+            font-size:11px;
+            font-weight:600;
+            display:inline-block;
+            white-space:nowrap;
+        }
+        .badge-success { background:rgba(16,185,129,.15); color:#34d399; }
+        .badge-danger { background:rgba(239,68,68,.15); color:#f87171; }
+        .badge-warning { background:rgba(245,158,11,.15); color:#fbbf24; }
+        .badge-info { background:rgba(6,182,212,.15); color:#22d3ee; }
+        .badge-archived { background:rgba(100,116,139,.15); color:#94a3b8; }
+
+        .btn {
+            padding:10px 16px;
+            border-radius:999px;
+            font-weight:600;
+            font-size:13px;
+            cursor:pointer;
+            transition:all .2s;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            background:transparent;
+            color:#e2e8f0;
+            border:1px solid rgba(255,255,255,.12);
+            min-width:0;
+        }
+        .btn:hover { background:rgba(255,255,255,.06); }
+        .btn-primary { background:linear-gradient(135deg,var(--primary),var(--secondary)); border:none; color:white; }
+        .btn-danger { background:linear-gradient(135deg,var(--danger),#dc2626); border:none; color:white; }
+        .btn-warning { background:linear-gradient(135deg,#f59e0b,#d97706); border:none; color:white; }
+        .btn-success { background:linear-gradient(135deg,var(--success),#059669); border:none; color:white; }
+        .btn-sm { padding:7px 12px; font-size:11px; }
+
+        .action-icons { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        .action-icon, .btn-icon {
+            width:32px;
+            height:32px;
+            border-radius:10px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            color:#94a3b8;
+            background:rgba(255,255,255,.03);
+            border:1px solid rgba(255,255,255,.06);
+            transition:all .2s;
+            flex-shrink:0;
+        }
+        .btn-icon { width:38px; height:38px; border-radius:12px; }
+        .action-icon:hover, .btn-icon:hover { background:rgba(59,130,246,.18); color:#60a5fa; }
+        .action-icon.delete:hover, .btn-icon.delete:hover { background:rgba(239,68,68,.18); color:#f87171; }
+        .action-icon.pay:hover { background:rgba(16,185,129,.18); color:#34d399; }
+        .action-icon.lock:hover { background:rgba(245,158,11,.18); color:#fbbf24; }
+
+        .modal-overlay {
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.82);
+            backdrop-filter:blur(12px);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:10000;
+            visibility:hidden;
+            opacity:0;
+            transition:all .25s;
+            padding:16px;
+        }
+        .modal-overlay.active { visibility:visible; opacity:1; }
+        .modal {
+            background:rgba(15,23,42,.98);
+            backdrop-filter:blur(26px);
+            border-radius:22px;
+            max-width:680px;
+            width:100%;
+            max-height:88vh;
+            overflow-y:auto;
+            padding:22px;
+            border:1px solid rgba(56,189,248,.2);
+            transform:scale(.96);
+            transition:transform .25s;
+            min-width:0;
+            overflow-wrap:anywhere;
+        }
+        .modal-overlay.active .modal { transform:scale(1); }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:22px; }
+        .modal-title { font-size:20px; font-weight:700; color:white; line-height:1.25; overflow-wrap:anywhere; }
+        .modal-close {
+            width:36px;
+            height:36px;
+            border-radius:12px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            background:rgba(255,255,255,.05);
+            color:#94a3b8;
+            flex-shrink:0;
+        }
+        .form-group { margin-bottom:18px; min-width:0; }
+        label { display:block; margin-bottom:8px; font-size:12px; font-weight:600; color:#94a3b8; }
+        input, select, textarea {
+            width:100%;
+            padding:13px 15px;
+            background:rgba(0,0,0,.34);
+            border:1.5px solid rgba(255,255,255,.10);
+            border-radius:12px;
+            font-size:14px;
+            color:#e2e8f0;
+            min-width:0;
+        }
+        textarea { resize:vertical; }
+        input:focus, select:focus, textarea:focus { outline:none; border-color:var(--primary); }
+        option { background:#0f172a; color:#e2e8f0; }
+        .modal-footer {
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            margin-top:22px;
+            padding-top:18px;
+            border-top:1px solid var(--border-color);
+            flex-wrap:wrap;
+        }
+
+        .toast-container { position:fixed; bottom:20px; right:20px; z-index:99999; max-width:min(420px,calc(100vw - 32px)); }
+        .toast {
+            background:rgba(15,23,42,.98);
+            backdrop-filter:blur(24px);
+            padding:13px 18px;
+            border-radius:999px;
+            color:white;
+            font-weight:600;
+            margin-top:10px;
+            border:1px solid rgba(56,189,248,.2);
+            display:flex;
+            align-items:center;
+            gap:10px;
+            animation:slideIn .25s ease;
+            font-size:13px;
+            overflow-wrap:anywhere;
+        }
+        @keyframes slideIn { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+
+        .branch-card, .admin-card, .group-card {
+            background:var(--card-bg);
+            backdrop-filter:blur(18px);
+            border-radius:16px;
+            padding:18px;
+            border:1px solid var(--border-color);
+            margin-bottom:14px;
+            display:flex;
+            flex-wrap:wrap;
+            gap:14px;
+            align-items:center;
+            transition:all .2s;
+            min-width:0;
+            overflow-wrap:anywhere;
+        }
+        .branch-card { cursor:pointer; }
+        .branch-card:hover, .admin-card:hover, .group-card:hover { background:rgba(59,130,246,.12); border-color:rgba(59,130,246,.28); }
+        .branch-card-icon, .admin-avatar {
+            width:54px;
+            height:54px;
+            background:linear-gradient(135deg,var(--primary),var(--secondary));
+            border-radius:16px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:22px;
+            font-weight:800;
+            color:white;
+            flex-shrink:0;
+        }
+        .admin-avatar { width:60px; height:60px; border-radius:20px; }
+        .branch-card-info, .admin-info { flex:1; min-width:0; }
+        .branch-card-info h3, .admin-info h3 { font-size:18px; font-weight:700; color:white; margin-bottom:6px; line-height:1.25; overflow-wrap:anywhere; }
+        .branch-card-info p, .admin-info p { font-size:13px; color:var(--gray); margin-bottom:5px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .branch-card-actions, .admin-actions { display:flex; gap:8px; margin-left:auto; flex-wrap:wrap; }
+        .groups-container { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:18px; }
+
+        .tab-buttons {
+            display:flex;
+            gap:8px;
+            margin-bottom:20px;
+            border-bottom:1px solid var(--border-color);
+            padding-bottom:12px;
+            flex-wrap:wrap;
+        }
+        .tab-btn {
+            padding:8px 14px;
+            border-radius:999px;
+            background:transparent;
+            border:none;
+            color:var(--gray);
+            cursor:pointer;
+            font-size:13px;
+            transition:all .2s;
+        }
+        .tab-btn.active { background:rgba(59,130,246,.20); color:white; }
+        .tab-btn:hover { background:rgba(59,130,246,.10); color:#60a5fa; }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+
+        .attendance-grid {
+            overflow-x:auto;
+            -webkit-overflow-scrolling:touch;
+            border-radius:14px;
+        }
+        .attendance-grid table {
+            min-width:640px;
+            border-collapse:separate;
+            border-spacing:0;
+            font-size:12px;
+        }
+        .attendance-grid th,
+        .attendance-grid td {
+            text-align:center;
+            padding:8px 5px;
+            white-space:nowrap;
+            max-width:none;
+        }
+        .attendance-grid th:first-child,
+        .attendance-grid td:first-child {
+            text-align:left;
+            padding-left:12px;
+            font-weight:600;
+            min-width:150px;
+            max-width:210px;
+            white-space:normal;
+        }
+        .attendance-grid th:last-child,
+        .attendance-grid td:last-child { min-width:86px; }
+        .status-dot {
+            display:inline-block;
+            width:20px;
+            height:20px;
+            border-radius:50%;
+            cursor:pointer;
+            transition:transform .15s, box-shadow .15s;
+            border:2px solid rgba(255,255,255,.08);
+            vertical-align:middle;
+        }
+        .status-dot:hover { transform:scale(1.28); box-shadow:0 0 8px rgba(255,255,255,.20); }
+        .status-dot.present { background:#10b981; border-color:#059669; }
+        .status-dot.absent { background:#ef4444; border-color:#dc2626; }
+        .status-dot.late { background:#f59e0b; border-color:#d97706; }
+        .status-dot.empty { background:rgba(100,116,139,.30); border-color:rgba(100,116,139,.50); }
+        .status-dot.frozen { background:#94a3b8; border-color:#64748b; cursor:not-allowed; }
+        .frozen-row { opacity:.68; background:rgba(100,116,139,.08); }
+        .attendance-frozen-cell { background:rgba(100,116,139,.18); cursor:not-allowed!important; text-align:center; user-select:none; }
+
+        .login-icon-large {
+            width:70px;
+            height:70px;
+            background:linear-gradient(135deg,var(--primary),var(--secondary));
+            border-radius:20px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:28px;
+            font-weight:800;
+            color:white;
+            margin:0 auto 20px;
+        }
+
+        @media (max-width:768px) {
+            .sidebar { transform:translateX(-100%); }
+            .sidebar.mobile-open { transform:translateX(0); }
+            .main-content {
+                margin-left:0!important;
+                padding:72px 16px 16px!important;
+            }
+            .mobile-menu-toggle { display:flex!important; }
+            .page-header { padding-left:52px; align-items:flex-start; }
+            .page-header h1, .page-title h1 { font-size:20px; }
+            .stats-grid { grid-template-columns:1fr 1fr; gap:12px; }
+            .stat-card { padding:15px; }
+            .stat-value { font-size:22px; }
+            .groups-container { display:flex; flex-direction:column; gap:14px; }
+            .branch-card, .admin-card { align-items:flex-start; }
+            .branch-card-actions, .admin-actions { margin-left:0; width:100%; justify-content:flex-start; }
+            .tab-buttons { overflow-x:auto; white-space:nowrap; flex-wrap:nowrap; padding-bottom:8px; }
+            .tab-btn { flex-shrink:0; font-size:12px; padding:7px 13px; }
+
+            .attendance-grid th:first-child,
+            .attendance-grid td:first-child {
+                position:sticky;
+                left:0;
+                background:rgba(15,23,42,.97);
+                backdrop-filter:blur(10px);
+                z-index:2;
+                border-right:1px solid rgba(255,255,255,.06);
+            }
+            .attendance-grid th:last-child,
+            .attendance-grid td:last-child {
+                position:sticky;
+                right:0;
+                background:rgba(15,23,42,.97);
+                backdrop-filter:blur(10px);
+                z-index:2;
+                border-left:1px solid rgba(255,255,255,.06);
+            }
+
+            .table-wrapper:not(.attendance-grid) table,
+            .table-wrapper:not(.attendance-grid) thead,
+            .table-wrapper:not(.attendance-grid) tbody,
+            .table-wrapper:not(.attendance-grid) th,
+            .table-wrapper:not(.attendance-grid) td,
+            .table-wrapper:not(.attendance-grid) tr { display:block; width:100%; }
+            .table-wrapper:not(.attendance-grid) thead { display:none; }
+            .table-wrapper:not(.attendance-grid) tr {
+                margin-bottom:12px;
+                border-bottom:2px solid rgba(255,255,255,.10);
+                padding-bottom:10px;
+            }
+            .table-wrapper:not(.attendance-grid) td {
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:12px;
+                padding:8px 0;
+                border:none;
+                font-size:13px;
+                max-width:none;
+                white-space:normal;
+                text-align:right;
+            }
+            .table-wrapper:not(.attendance-grid) td::before {
+                content:attr(data-label);
+                color:var(--gray);
+                font-size:11px;
+                flex:0 0 96px;
+                text-align:left;
+            }
+            .compact-table table { min-width:0; }
+            .compact-table td .ellipsis { max-width:calc(100vw - 156px); }
+            .modal { padding:16px; border-radius:18px; }
+            .modal-footer .btn { flex:1 1 120px; }
+        }
+
+        @media (max-width:480px) {
+            .stats-grid { grid-template-columns:1fr; }
+            .btn { padding:8px 12px; font-size:12px; }
+            .toast-container { right:16px; bottom:16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="mobile-menu-toggle" id="mobileMenuToggle"><i class="fas fa-bars"></i></div>
+    <aside class="sidebar hidden" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">UP</div>
+                <div class="logo-text"><h2>UstozPro</h2><span>@UstozProBot</span></div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" id="sidebarNav"></nav>
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar" id="userAvatar">UP</div>
+                <div class="user-info"><h4 id="sidebarUserName">Foydalanuvchi</h4><p id="sidebarBranchInfo"></p></div>
+            </div>
+            <button class="btn w-full" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Chiqish</button>
+        </div>
+    </aside>
+    <main class="main-content hidden" id="mainContent"></main>
+</div>
+<div class="modal-overlay" id="modalOverlay"><div class="modal" id="modalContent"></div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+(function(){
+    const SUPABASE_URL = 'https://nfxokmiwjvivrrbyrlwe.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5meG9rbWl3anZpdnJyYnlybHdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NjgwODgsImV4cCI6MjA5MjI0NDA4OH0.UXw_H5C9dA-28FLt1qfsaPROfTq4kqDK8fs5d0fhEUo';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+    let currentBranch = null;
+    let originalSuperAdmin = null;
+    let selectedGroupId = null;
+    let currentTeacherGroupId = null;
+
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    const sidebarNav = document.getElementById('sidebarNav');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalContent = document.getElementById('modalContent');
+    const toastContainer = document.getElementById('toastContainer');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+
+    mobileMenuToggle.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+
+    function showToast(msg, type='success') {
+        const icons = { success:'check-circle', error:'exclamation-circle', warning:'exclamation-triangle' };
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas fa-${icons[type] || 'check-circle'}"></i> <span>${escapeHtml(msg)}</span>`;
+        toastContainer.appendChild(toast);
+        setTimeout(() => toast.remove(), 4200);
+    }
+
+    function openModal(html) {
+        modalContent.innerHTML = html;
+        modalOverlay.classList.add('active');
+    }
+    window.closeModal = () => modalOverlay.classList.remove('active');
+    modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) closeModal(); });
+    document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+    function escapeHtml(str) {
+        if(str === null || str === undefined) return '';
+        return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function formatDate(d) {
+        if(!d) return '-';
+        try { return new Date(d).toLocaleDateString('uz-UZ'); } catch(e) { return d; }
+    }
+    function formatNumber(n) {
+        const value = Number(n) || 0;
+        return value.toLocaleString('uz-UZ');
+    }
+    function shortId(id) {
+        if(!id) return '-';
+        const text = String(id);
+        return text.length > 8 ? text.slice(0, 8) + '...' : text;
+    }
+    function getPaymentTypeLabel(type) {
+        const labels = { cash:'Naqd', card:'Karta', click:'Click', payme:'Payme', waived:'Kechirildi' };
+        return labels[type] || type || 'Naqd';
+    }
+    function todayIso() { return new Date().toISOString().split('T')[0]; }
+    function toIsoDateLocal(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    function jsDayToDbDay(date) {
+        const day = date.getDay();
+        return day === 0 ? 7 : day;
+    }
+    function monthRange(year, month) {
+        const lastDay = new Date(year, month, 0).getDate();
+        return {
+            start:`${year}-${String(month).padStart(2, '0')}-01`,
+            end:`${year}-${String(month).padStart(2, '0')}-${lastDay}`
+        };
+    }
+    function monthNameUz(year, month) {
+        return `${new Date(year, month - 1).toLocaleString('uz-UZ', { month:'long' })} ${year}`;
+    }
+
+    function setMain(html) {
+        mainContent.innerHTML = html;
+        window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    async function currentBranchId() {
+        return currentBranch?.id || currentUser?.branch_id || null;
+    }
+
+    async function getBranchRevenueMap() {
+        const { data: groups } = await sb.from('groups').select('id, branch_id');
+        const { data: payments } = await sb.from('payments').select('amount, group_id');
+        const revenueMap = {};
+        const groupBranch = {};
+        (groups || []).forEach(g => groupBranch[g.id] = g.branch_id);
+        (payments || []).forEach(p => {
+            const branchId = groupBranch[p.group_id];
+            if(branchId) revenueMap[branchId] = (revenueMap[branchId] || 0) + (Number(p.amount) || 0);
+        });
+        return revenueMap;
+    }
+
+    async function getGroupLessonDates(groupId, year, month) {
+        const [{ data: schedules }, { data: group }] = await Promise.all([
+            sb.from('schedules').select('day_of_week').eq('group_id', groupId),
+            sb.from('groups').select('created_at, end_date').eq('id', groupId).maybeSingle()
+        ]);
+        const scheduleDays = [...new Set((schedules || []).map(s => Number(s.day_of_week)).filter(Boolean))];
+        if(scheduleDays.length === 0) return [];
+
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const monthStart = new Date(year, month - 1, 1);
+        const monthEnd = new Date(year, month - 1, daysInMonth, 23, 59, 59);
+        const groupStart = group?.created_at ? new Date(group.created_at) : monthStart;
+        groupStart.setHours(0, 0, 0, 0);
+        const groupEnd = group?.end_date ? new Date(group.end_date + 'T23:59:59') : monthEnd;
+        const effectiveStart = groupStart > monthStart ? groupStart : monthStart;
+        const effectiveEnd = groupEnd < monthEnd ? groupEnd : monthEnd;
+        const weekShort = ['', 'Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
+        const dates = [];
+
+        for(let d = 1; d <= daysInMonth; d++) {
+            const current = new Date(year, month - 1, d);
+            if(current < effectiveStart || current > effectiveEnd) continue;
+            const dbDay = jsDayToDbDay(current);
+            if(scheduleDays.includes(dbDay)) {
+                dates.push({ day:d, dbDay, weekShort:weekShort[dbDay], dateStr:toIsoDateLocal(current) });
+            }
+        }
+        return dates;
+    }
+
+    function buildAttendanceTableHtml(groupId, studentsRel, attendance, performance, lessonDates) {
+        const attendanceMap = new Map((attendance || []).map(a => [`${a.student_id}|${a.lesson_date}`, a]));
+        const performanceMap = new Map((performance || []).map(p => [`${p.student_id}|${p.lesson_date}`, p]));
+        let html = `<div class="attendance-grid"><table><thead><tr><th>O'quvchi</th>`;
+        lessonDates.forEach(ld => {
+            html += `<th style="min-width:34px; font-size:10px;" title="${ld.dateStr}">${ld.day}<br><span class="muted-small">${ld.weekShort}</span></th>`;
+        });
+        html += `<th>O'rtacha %</th></tr></thead><tbody>`;
+
+        (studentsRel || []).forEach(s => {
+            const isFrozen = s.status === 'frozen';
+            html += `<tr class="${isFrozen ? 'frozen-row' : ''}"><td>${escapeHtml(s.students?.full_name || '-')} ${isFrozen ? '<span class="badge badge-warning" style="font-size:10px; padding:2px 6px;">Muz</span>' : ''}</td>`;
+            let perfSum = 0;
+            let perfCount = 0;
+            lessonDates.forEach(ld => {
+                if(isFrozen) {
+                    html += `<td class="attendance-frozen-cell"><span class="status-dot frozen" title="Muzlatilgan"></span></td>`;
+                    return;
+                }
+                const key = `${s.student_id}|${ld.dateStr}`;
+                const att = attendanceMap.get(key);
+                const perf = performanceMap.get(key);
+                const status = att ? att.status : (perf ? 'present' : null);
+                const dotClass = status === 'present' ? 'present' : (status === 'absent' ? 'absent' : (status === 'late' ? 'late' : 'empty'));
+                const tooltip = status === 'present' ? 'Keldi' : (status === 'absent' ? 'Kelmadi' : (status === 'late' ? 'Kechikdi' : 'Belgilanmagan'));
+                html += `<td><span class="status-dot ${dotClass}" onclick="openAttendanceMarker('${groupId}','${s.student_id}','${ld.dateStr}','${status || ''}')" title="${tooltip}"></span></td>`;
+                if(perf) {
+                    perfSum += Number(perf.percentage) || 0;
+                    perfCount++;
+                }
+            });
+            const avg = (!isFrozen && perfCount > 0) ? Math.round(perfSum / perfCount) : 0;
+            html += `<td>${!isFrozen ? `<span class="badge ${avg >= 70 ? 'badge-success' : avg >= 40 ? 'badge-warning' : 'badge-danger'}">${avg}%</span>` : '-'}</td></tr>`;
+        });
+
+        html += '</tbody></table></div>';
+        return html;
+    }
+
+    async function calculateStudentDebt(studentId, groupId) {
+        if(!studentId || !groupId) return 0;
+        const [{ data: gs }, { data: gr }, { data: payments }] = await Promise.all([
+            sb.from('group_students').select('discount_percent').eq('student_id', studentId).eq('group_id', groupId).maybeSingle(),
+            sb.from('groups').select('price').eq('id', groupId).single(),
+            sb.from('payments').select('amount').eq('student_id', studentId).eq('group_id', groupId)
+        ]);
+        const discount = Number(gs?.discount_percent) || 0;
+        const price = Number(gr?.price) || 0;
+        const due = Math.round(price * (1 - discount / 100));
+        const paid = (payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+        return Math.max(0, due - paid);
+    }
+    window.calculateStudentDebt = calculateStudentDebt;
+
+    async function calculateTeacherSalaryForMonth(teacherId, branchId, year, month) {
+        const { start, end } = monthRange(year, month);
+        const [{ data: teacher }, { data: groups }] = await Promise.all([
+            sb.from('users').select('*').eq('id', teacherId).single(),
+            sb.from('groups').select('id, name').eq('teacher_id', teacherId)
+        ]);
+
+        const groupIds = (groups || []).map(g => g.id);
+        let totalRevenue = 0;
+        const groupRevenueMap = {};
+        if(groupIds.length > 0) {
+            const { data: payments } = await sb.from('payments')
+                .select('amount, group_id')
+                .in('group_id', groupIds)
+                .gte('payment_date', start)
+                .lte('payment_date', end);
+            (payments || []).forEach(p => {
+                const amount = Number(p.amount) || 0;
+                totalRevenue += amount;
+                groupRevenueMap[p.group_id] = (groupRevenueMap[p.group_id] || 0) + amount;
+            });
+        }
+
+        const salaryCalculated = teacher?.salary_type === 'percent'
+            ? Math.round(totalRevenue * (Number(teacher.salary_percent) || 0) / 100)
+            : Number(teacher?.salary || 0);
+
+        const { data: salaryPays } = await sb.from('expenses')
+            .select('amount, expense_date, description')
+            .eq('branch_id', branchId)
+            .eq('expense_type', 'salary')
+            .eq('created_by', teacherId)
+            .gte('expense_date', start)
+            .lte('expense_date', end)
+            .order('expense_date', { ascending:false });
+
+        const paidAmount = (salaryPays || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+        return {
+            teacher,
+            groups:(groups || []).map(g => ({ ...g, revenue:groupRevenueMap[g.id] || 0 })),
+            totalRevenue,
+            salaryCalculated,
+            paidAmount,
+            remaining:Math.max(0, salaryCalculated - paidAmount),
+            advance:Math.max(0, paidAmount - salaryCalculated),
+            salaryPays:salaryPays || []
+        };
+    }
+
+    function showLoginModal() {
+        openModal(`
+            <div class="login-icon-large">UP</div>
+            <h2 style="text-align:center; margin-bottom:4px;">UstozPro CRM</h2>
+            <p style="text-align:center; color:var(--gray); margin-bottom:20px;">@UstozProBot</p>
+            <form id="loginFormModal">
+                <div class="form-group"><label><i class="fas fa-user"></i> Login</label><input type="text" id="loginUsername" autocomplete="username" required></div>
+                <div class="form-group"><label><i class="fas fa-lock"></i> Parol</label><input type="password" id="loginPassword" autocomplete="current-password" required></div>
+                <button type="submit" class="btn btn-primary w-full">Kirish</button>
+            </form>
+        `);
+
+        document.getElementById('loginFormModal').addEventListener('submit', async e => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+
+            const { data:user, error } = await sb.from('users').select('*').eq('login', username).eq('password', password).maybeSingle();
+            if(error) { showToast('Xatolik: ' + error.message, 'error'); return; }
+
+            if(user) {
+                if(user.is_active === false) { showToast('Hisobingiz muzlatilgan', 'error'); return; }
+                currentUser = user;
+                originalSuperAdmin = null;
+                if(user.role === 'admin' && user.branch_id) {
+                    const { data:branch } = await sb.from('branches').select('*').eq('id', user.branch_id).maybeSingle();
+                    currentBranch = branch || null;
+                } else {
+                    currentBranch = null;
+                }
+                closeModal();
+                loginSuccess();
+                return;
+            }
+
+            const { data:student } = await sb.from('students').select('*').eq('login', username).eq('password', password).maybeSingle();
+            if(student) {
+                if(student.is_active === false) { showToast('Hisobingiz muzlatilgan', 'error'); return; }
+                currentUser = { ...student, role:'student' };
+                currentBranch = null;
+                originalSuperAdmin = null;
+                closeModal();
+                loginSuccess();
+                return;
+            }
+
+            showToast('Login yoki parol xato', 'error');
+        });
+    }
+
+    async function loginSuccess() {
+        sidebar.classList.remove('hidden');
+        mainContent.classList.remove('hidden');
+        document.getElementById('sidebarUserName').textContent = currentUser.full_name || 'Noma\'lum';
+        const role = currentUser.role;
+        let branchInfo = '';
+        if(role === 'director') branchInfo = 'Platforma boshqaruvi';
+        else if(role === 'super_admin') branchInfo = 'Barcha filiallar';
+        else if(role === 'student') branchInfo = 'O\'quvchi';
+        else if(role === 'teacher') branchInfo = 'O\'qituvchi';
+        else if(role === 'admin') branchInfo = currentBranch?.name || 'Filial menejeri';
+        document.getElementById('sidebarBranchInfo').textContent = branchInfo;
+        const avatarText = (currentUser.full_name || 'UP').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+        document.getElementById('userAvatar').textContent = avatarText || 'UP';
+        // ======================= SUPER ADMINLARNI BOSHQARISH =======================
+        window.renderSuperAdminList = async function() {
+    // Faqat super_admin roliga ega foydalanuvchilarni olish
+    const { data: superAdmins, error } = await sb.from('users')
+        .select('*')
+        .eq('role', 'super_admin')
+        .order('full_name');
+    if (error) {
+        showToast('Xatolik: ' + error.message, 'error');
+        return;
+    }
+
+    let html = `
+        <div class="page-header">
+            <h1>Super adminlar</h1>
+            <button class="btn btn-primary" onclick="openSuperAdminForm()">
+                <i class="fas fa-plus"></i> Yangi super admin
+            </button>
+        </div>
+        <div class="card">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>Ism</th><th>Login</th><th>Telefon</th><th>Manzil</th><th>Filial limiti</th><th>Holat</th><th>Amallar</th>
+                    </thead>
+                    <tbody>`;
+
+    for (const admin of (superAdmins || [])) {
+        html += `
+            <tr>
+                <td data-label="Ism">${escapeHtml(admin.full_name)}</td>
+                <td data-label="Login">${escapeHtml(admin.login)}</td>
+                <td data-label="Telefon">${escapeHtml(admin.phone || '-')}</td>
+                <td data-label="Manzil">${escapeHtml(admin.address || '-')}</td>
+                <td data-label="Filial limiti">${admin.branch_limit ? admin.branch_limit + ' ta' : 'Cheksiz'}</td>
+                <td data-label="Holat"><span class="badge ${admin.is_active ? 'badge-success' : 'badge-danger'}">${admin.is_active ? 'Faol' : 'Muzlatilgan'}</span></td>
+                <td data-label="Amallar">
+                    <div class="action-icons">
+                        <div class="action-icon edit" onclick="editSuperAdmin('${admin.id}')"><i class="fas fa-edit"></i></div>
+                        <div class="action-icon delete" onclick="deleteSuperAdmin('${admin.id}', '${escapeHtml(admin.full_name)}')"><i class="fas fa-trash"></i></div>
+                    </div>
+                </td>
+            </tr>`;
+    }
+
+    html += `</tbody></table></div></div>`;
+    setMain(html);
+}
+
+// Yangi super admin qo'shish formasi
+window.openSuperAdminForm = () => {
+    openModal(`
+        <div class="modal-header">
+            <h3 class="modal-title">Yangi super admin</h3>
+            <div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div>
+        </div>
+        <form onsubmit="saveSuperAdmin(event)">
+            <div class="form-group"><label>To'liq ism</label><input name="full_name" required></div>
+            <div class="form-group"><label>Login</label><input name="login" required></div>
+            <div class="form-group"><label>Parol</label><input name="password" value="123456" required></div>
+            <div class="form-group"><label>Telefon</label><input name="phone"></div>
+            <div class="form-group"><label>Manzil</label><input name="address"></div>
+            <div class="form-group"><label>Filial limiti (ta)</label><input type="number" name="branch_limit" min="0" placeholder="Cheksiz uchun bo'sh qoldiring"></div>
+            <div class="form-group"><label>Holat</label><select name="is_active"><option value="true">Faol</option><option value="false">Muzlatilgan</option></select></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="closeModal()">Bekor</button>
+                <button class="btn btn-primary">Saqlash</button>
+            </div>
+        </form>
+    `);
+};
+
+// Saqlash
+window.saveSuperAdmin = async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target));
+    const payload = {
+        full_name: data.full_name,
+        login: data.login,
+        password: data.password,
+        phone: data.phone || null,
+        address: data.address || null,
+        branch_limit: data.branch_limit ? Number(data.branch_limit) : null,
+        role: 'super_admin',
+        is_active: data.is_active === 'true',
+        created_by: currentUser.id
+    };
+    const { error } = await sb.from('users').insert(payload);
+    if (error) {
+        showToast('Xatolik: ' + error.message, 'error');
+        return;
+    }
+    closeModal();
+    renderSuperAdminList();
+    showToast('Super admin qo\'shildi');
+};
+
+// Tahrirlash
+window.editSuperAdmin = async (id) => {
+    const { data: admin, error } = await sb.from('users').select('*').eq('id', id).single();
+    if (error) {
+        showToast(error.message, 'error');
+        return;
+    }
+    openModal(`
+        <div class="modal-header">
+            <h3 class="modal-title">Super adminni tahrirlash</h3>
+            <div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div>
+        </div>
+        <form onsubmit="updateSuperAdmin(event, '${id}')">
+            <div class="form-group"><label>To'liq ism</label><input name="full_name" value="${escapeHtml(admin.full_name)}" required></div>
+            <div class="form-group"><label>Login</label><input name="login" value="${escapeHtml(admin.login)}" required></div>
+            <div class="form-group"><label>Yangi parol</label><input name="password" placeholder="Bo'sh qoldirsangiz o'zgarmaydi"></div>
+            <div class="form-group"><label>Telefon</label><input name="phone" value="${escapeHtml(admin.phone || '')}"></div>
+            <div class="form-group"><label>Manzil</label><input name="address" value="${escapeHtml(admin.address || '')}"></div>
+            <div class="form-group"><label>Filial limiti (ta)</label><input type="number" name="branch_limit" value="${admin.branch_limit || ''}" placeholder="Cheksiz"></div>
+            <div class="form-group"><label>Holat</label><select name="is_active">
+                <option value="true" ${admin.is_active ? 'selected' : ''}>Faol</option>
+                <option value="false" ${!admin.is_active ? 'selected' : ''}>Muzlatilgan</option>
+            </select></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="closeModal()">Bekor</button>
+                <button class="btn btn-primary">Saqlash</button>
+            </div>
+        </form>
+    `);
+};
+
+window.updateSuperAdmin = async (e, id) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target));
+    const payload = {
+        full_name: data.full_name,
+        login: data.login,
+        phone: data.phone || null,
+        address: data.address || null,
+        branch_limit: data.branch_limit ? Number(data.branch_limit) : null,
+        is_active: data.is_active === 'true'
+    };
+    if (data.password) payload.password = data.password;
+    const { error } = await sb.from('users').update(payload).eq('id', id);
+    if (error) {
+        showToast('Xatolik: ' + error.message, 'error');
+        return;
+    }
+    closeModal();
+    renderSuperAdminList();
+    showToast('Super admin yangilandi');
+};
+
+// O'chirish
+window.deleteSuperAdmin = async (id, name) => {
+    if (!confirm(`${name} super adminni o‘chirishni tasdiqlaysizmi?`)) return;
+    const { error } = await sb.from('users').delete().eq('id', id);
+    if (error) {
+        showToast('Xatolik: ' + error.message, 'error');
+        return;
+    }
+    renderSuperAdminList();
+    showToast('Super admin o‘chirildi');
+};
+        renderNavigation();
+        if(role === 'director') renderDirectorDashboard();
+        else if(role === 'super_admin') renderSuperBranches();
+        else if(role === 'admin') renderDashboard();
+        else if(role === 'teacher') renderTeacherDashboard();
+        else if(role === 'student') renderStudentDashboard();
+        showToast(`Xush kelibsiz, ${currentUser.full_name || ''}!`);
+    }
+
+    logoutBtn.addEventListener('click', () => {
+        if(originalSuperAdmin) {
+            currentUser = originalSuperAdmin;
+            currentBranch = null;
+            originalSuperAdmin = null;
+            loginSuccess();
+            return;
+        }
+        currentUser = null;
+        currentBranch = null;
+        sidebar.classList.add('hidden');
+        mainContent.classList.add('hidden');
+        showLoginModal();
+    });
+
+    function renderNavigation() {
+        let sections = [];
+        const r = currentUser.role;
+        if(r === 'director') {
+            sections = [
+                { id:'director-dashboard', name:'Boshqaruv', icon:'fa-briefcase' },
+                { id:'director-superadmins', name:'Super Adminlar', icon:'fa-user-shield' },
+                { id:'director-branches', name:'Barcha filiallar', icon:'fa-building' },
+                { id:'reports', name:'Hisobotlar', icon:'fa-chart-bar' },
+                { id:'director-finance', name:'Umumiy moliya', icon:'fa-chart-line' }
+            ];
+        } else if(r === 'super_admin') {
+            sections = [
+                { id:'super-branches', name:'Filiallar', icon:'fa-building' },
+                { id:'super-admins-list', name:'Super adminlar', icon:'fa-crown' },   // YANGI QO'SHILDI
+                { id:'super-admins', name:'Adminlar', icon:'fa-user-shield' },       // Mavjud (branch adminlar)
+                { id:'super-finance', name:'Moliya', icon:'fa-chart-line' },
+                { id:'subjects', name:'Fanlar', icon:'fa-book' },
+                { id:'reports', name:'Hisobotlar', icon:'fa-chart-bar' }
+            ];
+        } else if(r === 'admin') {
+            sections = [
+                { id:'dashboard', name:'Boshqaruv', icon:'fa-chart-pie' },
+                { id:'employees', name:'O\'qituvchilar', icon:'fa-user-tie' },
+                { id:'students', name:'O\'quvchilar', icon:'fa-users' },
+                { id:'groups', name:'Guruhlar', icon:'fa-layer-group' },
+                { id:'finance', name:'To\'lovlar', icon:'fa-wallet' },
+                { id:'expenses', name:'Xarajatlar', icon:'fa-receipt' },
+                { id:'branch-finance', name:'Moliya', icon:'fa-chart-line' },
+                { id:'attendance', name:'Davomat', icon:'fa-calendar-check' },
+                { id:'schedule', name:'Dars jadvali', icon:'fa-calendar-alt' },
+                { id:'debtors', name:'Qarzdorlar', icon:'fa-exclamation-triangle' },
+                { id:'teacher-salaries', name:'O\'qituvchi oyliklari', icon:'fa-money-bill-wave' },
+                { id:'reports', name:'Hisobotlar', icon:'fa-chart-bar' },
+                { id:'leads', name:'Murojaatlar', icon:'fa-phone' },
+                { id:'archive', name:'Arxiv', icon:'fa-archive' }
+            ];
+        } else if(r === 'teacher') {
+            sections = [
+                { id:'teacher-dashboard', name:'Bosh sahifa', icon:'fa-chart-pie' },
+                { id:'teacher-attendance', name:'Davomat + O\'zlashtirish', icon:'fa-calendar-check' },
+                { id:'teacher-salary', name:'Maosh va hisobot', icon:'fa-money-bill-wave' }
+            ];
+        } else if(r === 'student') {
+            sections = [
+                { id:'student-dashboard', name:'Mening panelim', icon:'fa-chart-pie' },
+                { id:'my-schedule', name:'Dars jadvalim', icon:'fa-calendar-alt' },
+                { id:'my-attendance', name:'Davomatim', icon:'fa-calendar-check' },
+                { id:'my-payments', name:'To\'lovlarim', icon:'fa-wallet' }
+            ];
+        }
+
+        const renderers = {
+            'director-dashboard':renderDirectorDashboard,
+            'director-superadmins':renderDirectorSuperAdmins,
+            'director-branches':renderAllBranches,
+            'director-finance':renderSuperFinance,
+            'super-branches':renderSuperBranches,
+            'super-admins':renderSuperAdmins,
+            'super-finance':renderSuperFinance,
+            'dashboard':renderDashboard,
+            'employees':renderEmployees,
+            'students':renderStudents,
+            'groups':renderGroups,
+            'finance':renderFinance,
+            'expenses':renderExpenses,
+            'branch-finance':renderBranchFinance,
+            'attendance':renderAttendance,
+            'schedule':renderSchedule,
+            'debtors':renderDebtors,
+            'teacher-salaries':renderTeacherSalaries,
+            'reports':renderReports,
+            'subjects':renderSubjects,
+            'leads':renderLeads,
+            'archive':renderArchive,
+            'teacher-dashboard':renderTeacherDashboard,
+            'teacher-attendance':renderTeacherAttendance,
+            'teacher-salary':renderTeacherSalary,
+            'student-dashboard':renderStudentDashboard,
+            'my-schedule':renderStudentSchedule,
+            'my-attendance':renderStudentAttendance,
+            'my-payments':renderStudentPayments,
+            'super-admins-list': renderSuperAdminList,
+        };
+
+        sidebarNav.innerHTML = sections.map(s => `<button class="nav-item" data-section="${s.id}"><i class="fas ${s.icon}"></i> ${s.name}</button>`).join('');
+        sidebarNav.querySelectorAll('.nav-item').forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                sidebarNav.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const fn = renderers[btn.dataset.section];
+                if(fn) fn();
+                if(window.innerWidth <= 768) sidebar.classList.remove('mobile-open');
+            });
+            if(index === 0) btn.classList.add('active');
+        });
+    }
+
+    async function renderDirectorDashboard() {
+        const [{ count:users }, { count:branches }, revenueMap] = await Promise.all([
+            sb.from('users').select('*', { count:'exact', head:true }),
+            sb.from('branches').select('*', { count:'exact', head:true }),
+            getBranchRevenueMap()
+        ]);
+        const totalIncome = Object.values(revenueMap).reduce((sum, val) => sum + val, 0);
+        setMain(`
+            <div class="page-header"><div class="page-title"><h1>Direktor paneli</h1><p>Platforma umumiy holati</p></div></div>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-value">${users || 0}</div><div class="stat-label">Foydalanuvchilar</div></div>
+                <div class="stat-card"><div class="stat-value">${branches || 0}</div><div class="stat-label">Filiallar</div></div>
+                <div class="stat-card"><div class="stat-value text-success">${formatNumber(totalIncome)} so'm</div><div class="stat-label">Jami daromad</div></div>
+            </div>`);
+    }
+
+    async function renderDirectorSuperAdmins() {
+        const { data: supers, error } = await sb.from('users').select('*').eq('role', 'super_admin').order('full_name');
+        if(error) {
+            showToast('Xatolik: ' + error.message, 'error');
+            return;
+        }
+        let html = `<div class="page-header"><h1><i class="fas fa-user-shield"></i> Super adminlar</h1><button class="btn btn-primary" onclick="openSuperAdminForm()"><i class="fas fa-plus"></i> Yangi super admin</button></div>`;
+        if(!supers || supers.length === 0) {
+            html += '<div class="card text-center">Super adminlar mavjud emas</div>';
+            setMain(html);
+            return;
+        }
+        for(const s of supers) {
+            const limitText = s.branch_limit ? `${s.branch_limit} ta` : 'Cheksiz';
+            const lockIcon = s.is_active ? 'fa-lock' : 'fa-lock-open';
+            const statusBadge = s.is_active ? '<span class="badge badge-success">Faol</span>' : '<span class="badge badge-danger">Muzlatilgan</span>';
+            html += `
+            <div class="admin-card">
+                <div class="admin-avatar">${escapeHtml(s.full_name?.charAt(0) || 'S').toUpperCase()}</div>
+                <div class="admin-info">
+                    <h3>${escapeHtml(s.full_name)}</h3>
+                    <p><i class="fas fa-key"></i> Login: ${escapeHtml(s.login)}</p>
+                    <p><i class="fas fa-phone"></i> ${escapeHtml(s.phone || '-')}</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Manzil: ${escapeHtml(s.address || '-')}</p>
+                    <p><i class="fas fa-chart-line"></i> Filial limiti: ${limitText}</p>
+                </div>
+                <div class="admin-status">
+                    ${statusBadge}
+                    <div class="admin-actions">
+                        <div class="action-icon" onclick="loginAsSuperAdmin('${s.id}')" title="Kirish"><i class="fas fa-sign-in-alt"></i></div>
+                        <div class="action-icon edit" onclick="editSuperAdmin('${s.id}')" title="Tahrirlash"><i class="fas fa-edit"></i></div>
+                        <div class="action-icon lock" onclick="toggleUserActive('${s.id}')" title="${s.is_active ? 'Muzlatish' : 'Faollashtirish'}"><i class="fas ${lockIcon}"></i></div>
+                        <div class="action-icon delete" onclick="deleteSuperAdmin('${s.id}','${escapeHtml(s.full_name)}')" title="O'chirish"><i class="fas fa-trash"></i></div>
+                    </div>
+                </div>
+            </div>`;
+        }
+        setMain(html);
+    }
+
+    window.toggleUserActive = async userId => {
+        const { data: user, error } = await sb.from('users').select('is_active, full_name').eq('id', userId).single();
+        if(error || !user) {
+            if(error) showToast('Xatolik: ' + error.message, 'error');
+            return;
+        }
+        const newStatus = !user.is_active;
+        const { error: updateError } = await sb.from('users').update({ is_active: newStatus }).eq('id', userId);
+        if(updateError) {
+            showToast('Xatolik: ' + updateError.message, 'error');
+            return;
+        }
+        showToast(`${user.full_name} ${newStatus ? 'faollashtirildi' : 'muzlatildi'}`);
+        if(currentUser.role === 'director') renderDirectorSuperAdmins();
+        else if(currentUser.role === 'super_admin') renderSuperAdmins();
+    };
+
+    window.loginAsSuperAdmin = async userId => {
+        const { data: user, error } = await sb.from('users').select('*').eq('id', userId).single();
+        if(error || !user) {
+            showToast(error ? 'Xatolik: ' + error.message : 'Foydalanuvchi topilmadi', 'error');
+            return;
+        }
+        if(!user.is_active) {
+            showToast('Super admin faol emas', 'error');
+            return;
+        }
+        originalSuperAdmin = currentUser;
+        currentUser = user;
+        currentBranch = null;
+        closeModal();
+        loginSuccess();
+        showToast(`${user.full_name} sifatida kirdingiz`);
+    };
+
+    async function renderAllBranches() {
+        const { data:branches } = await sb.from('branches').select('*').order('name');
+        const revenueMap = await getBranchRevenueMap();
+        let html = `<div class="page-header"><h1>Barcha filiallar</h1></div>`;
+        if(!branches || branches.length === 0) {
+            setMain(html + '<div class="card text-center">Filiallar mavjud emas</div>');
+            return;
+        }
+        branches.forEach(b => {
+            html += `<div class="branch-card" onclick="viewBranchFinance('${b.id}')">
+                <div class="branch-card-icon">${escapeHtml((b.name || '?').charAt(0)).toUpperCase()}</div>
+                <div class="branch-card-info"><h3>${escapeHtml(b.name)}</h3><p><i class="fas fa-user-tie"></i> ${escapeHtml(b.manager_name || 'Tayinlanmagan')}</p></div>
+                <div class="stat-card" style="margin:0;"><div class="stat-value text-success" style="font-size:18px;">${formatNumber(revenueMap[b.id] || 0)} so'm</div><div class="stat-label">Daromad</div></div>
+            </div>`;
+        });
+        setMain(html);
+    }
+
+    async function renderSuperBranches() {
+        let query = sb.from('branches').select('*');
+        if(currentUser.role === 'super_admin') query = query.eq('created_by', currentUser.id);
+        const { data:branches } = await query.order('name');
+        const revenueMap = await getBranchRevenueMap();
+        let html = `<div class="page-header"><h1>Filiallar</h1><button class="btn btn-primary" onclick="openBranchForm()"><i class="fas fa-plus"></i> Yangi filial</button></div>`;
+        if(!branches || branches.length === 0) {
+            setMain(html + '<div class="card text-center">Filial mavjud emas</div>');
+            return;
+        }
+        for(const b of branches) {
+            const { data:admin } = await sb.from('users').select('full_name, login, phone, is_active').eq('branch_id', b.id).eq('role', 'admin').maybeSingle();
+            html += `<div class="branch-card" onclick="viewBranchFinance('${b.id}')">
+                <div class="branch-card-icon">${escapeHtml((b.name || '?').charAt(0)).toUpperCase()}</div>
+                <div class="branch-card-info">
+                    <h3>${escapeHtml(b.name)}</h3>
+                    <p><i class="fas fa-user-tie"></i> Menejer: ${escapeHtml(b.manager_name || admin?.full_name || '-')}</p>
+                    <p><i class="fas fa-key"></i> Login: ${escapeHtml(admin?.login || '-')}</p>
+                </div>
+                <div class="stat-card" style="margin:0;"><div class="stat-value text-success" style="font-size:18px;">${formatNumber(revenueMap[b.id] || 0)} so'm</div><div class="stat-label">Daromad</div></div>
+                <div class="branch-card-actions">
+                    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); loginAsBranchAdmin('${b.id}')"><i class="fas fa-sign-in-alt"></i> Kirish</button>
+                    <div class="btn-icon delete" onclick="event.stopPropagation(); deleteBranchPermanently('${b.id}', '${escapeHtml(b.name)}')" title="O'chirish"><i class="fas fa-trash"></i></div>
+                </div>
+            </div>`;
+        }
+        setMain(html);
+    }
+
+    window.openBranchForm = () => {
+        openModal(`
+            <div class="modal-header"><h3 class="modal-title">Yangi filial</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+            <form onsubmit="saveBranch(event)">
+                <div class="form-group"><label>Filial nomi</label><input name="name" required></div>
+                <div class="form-group"><label>Menejer ismi</label><input name="manager_name" required></div>
+                <div class="form-group"><label>Menejer telefon</label><input name="manager_phone"></div>
+                <div class="form-group"><label>Menejer login</label><input name="admin_login" required></div>
+                <div class="form-group"><label>Menejer parol</label><input name="admin_password" value="123456" required></div>
+                <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+            </form>`);
+    };
+
+    window.saveBranch = async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const { data:existing } = await sb.from('users').select('id').eq('login', data.admin_login).maybeSingle();
+        if(existing) { showToast('Bu login band', 'error'); return; }
+        const { data:newBranch, error:branchError } = await sb.from('branches').insert({
+            name:data.name,
+            manager_name:data.manager_name,
+            manager_phone:data.manager_phone,
+            is_active:true,
+            created_by:currentUser.id
+        }).select().single();
+        if(branchError) { showToast(branchError.message, 'error'); return; }
+        const { error:adminError } = await sb.from('users').insert({
+            full_name:data.manager_name,
+            login:data.admin_login,
+            password:data.admin_password,
+            role:'admin',
+            branch_id:newBranch.id,
+            phone:data.manager_phone,
+            is_active:true
+        });
+        if(adminError) { showToast(adminError.message, 'error'); return; }
+        closeModal();
+        renderSuperBranches();
+        showToast('Filial yaratildi');
+    };
+
+    window.loginAsBranchAdmin = async branchId => {
+        const { data:admin } = await sb.from('users').select('*').eq('branch_id', branchId).eq('role', 'admin').maybeSingle();
+        if(!admin) { showToast('Bu filialda admin topilmadi', 'error'); return; }
+        const { data:branch } = await sb.from('branches').select('*').eq('id', branchId).maybeSingle();
+        originalSuperAdmin = currentUser;
+        currentUser = admin;
+        currentBranch = branch;
+        loginSuccess();
+    };
+
+    window.deleteBranchPermanently = async (id, name) => {
+        if(!confirm(`${name} filialini o'chirishni tasdiqlaysizmi?`)) return;
+        const { error } = await sb.from('branches').delete().eq('id', id);
+        if(error) { showToast(error.message, 'error'); return; }
+        showToast('Filial o\'chirildi');
+        renderSuperBranches();
+    };
+
+    async function renderSuperAdmins() {
+        const { data:admins } = await sb.from('users').select('*, branches(name)').eq('role', 'admin').order('full_name');
+        setMain(`<div class="page-header"><h1>Adminlar</h1></div>
+        <div class="card"><div class="table-wrapper"><table><thead><tr><th>Ism</th><th>Login</th><th>Filial</th><th>Holat</th></tr></thead><tbody>
+        ${(admins || []).map(a => `<tr><td data-label="Ism">${escapeHtml(a.full_name)}</td><td data-label="Login">${escapeHtml(a.login)}</td><td data-label="Filial">${escapeHtml(a.branches?.name || '-')}</td><td data-label="Holat"><span class="badge ${a.is_active ? 'badge-success' : 'badge-danger'}">${a.is_active ? 'Faol' : 'Muzlatilgan'}</span></td></tr>`).join('') || '<tr><td colspan="4">Adminlar yo\'q</td></tr>'}
+        </tbody></table></div></div>`);
+    }
+
+    async function renderSuperFinance() {
+        const revenueMap = await getBranchRevenueMap();
+        let query = sb.from('branches').select('*');
+        if(currentUser.role === 'super_admin') query = query.eq('created_by', currentUser.id);
+        const { data:branches } = await query.order('name');
+        let totalIncome = 0;
+        let totalExpense = 0;
+        let rows = '';
+        for(const b of branches || []) {
+            const income = revenueMap[b.id] || 0;
+            const { data:expenses } = await sb.from('expenses').select('amount').eq('branch_id', b.id);
+            const expense = (expenses || []).reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
+            totalIncome += income;
+            totalExpense += expense;
+            rows += `<tr><td data-label="Filial">${escapeHtml(b.name)}</td><td data-label="Daromad" style="color:#34d399;">${formatNumber(income)} so'm</td><td data-label="Xarajat" style="color:#f87171;">${formatNumber(expense)} so'm</td><td data-label="Foyda">${formatNumber(income - expense)} so'm</td></tr>`;
+        }
+        setMain(`<div class="page-header"><h1>Umumiy moliya</h1></div>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-value text-success">${formatNumber(totalIncome)} so'm</div><div class="stat-label">Jami daromad</div></div>
+                <div class="stat-card"><div class="stat-value text-danger">${formatNumber(totalExpense)} so'm</div><div class="stat-label">Jami xarajat</div></div>
+                <div class="stat-card"><div class="stat-value">${formatNumber(totalIncome - totalExpense)} so'm</div><div class="stat-label">Sof foyda</div></div>
+            </div>
+            <div class="card"><div class="table-wrapper"><table><thead><tr><th>Filial</th><th>Daromad</th><th>Xarajat</th><th>Foyda</th></tr></thead><tbody>${rows || '<tr><td colspan="4">Ma\'lumot yo\'q</td></tr>'}</tbody></table></div></div>`);
+    }
+
+    window.viewBranchFinance = async branchId => {
+        const { data:branch } = await sb.from('branches').select('*').eq('id', branchId).single();
+        const { data:groups } = await sb.from('groups').select('id').eq('branch_id', branchId);
+        const groupIds = (groups || []).map(g => g.id);
+        let payments = [];
+        if(groupIds.length) {
+            const { data:payData } = await sb.from('payments').select('*, students(full_name), groups(name)').in('group_id', groupIds).order('payment_date', { ascending:false }).limit(30);
+            payments = payData || [];
+        }
+        const { data:expenses } = await sb.from('expenses').select('*').eq('branch_id', branchId);
+        const income = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+        const expense = (expenses || []).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        openModal(`<div class="modal-header"><h3 class="modal-title">${escapeHtml(branch?.name || '')} moliyasi</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <div class="stats-grid"><div class="stat-card"><div class="stat-value text-success">${formatNumber(income)} so'm</div><div class="stat-label">Daromad</div></div><div class="stat-card"><div class="stat-value text-danger">${formatNumber(expense)} so'm</div><div class="stat-label">Xarajat</div></div><div class="stat-card"><div class="stat-value">${formatNumber(income - expense)} so'm</div><div class="stat-label">Balans</div></div></div>`);
+    };
+
+    async function renderSubjects() {
+        const { data:subjects } = await sb.from('subjects').select('*').order('name');
+        setMain(`<div class="page-header"><h1>Fanlar</h1><button class="btn btn-primary" onclick="openSubjectForm()"><i class="fas fa-plus"></i> Fan</button></div>
+        <div class="card"><div class="table-wrapper"><table><thead><tr><th>Nomi</th><th>Tavsif</th></tr></thead><tbody>${(subjects || []).map(s => `<tr><td data-label="Nomi">${escapeHtml(s.name)}</td><td data-label="Tavsif">${escapeHtml(s.description || '-')}</td></tr>`).join('') || '<tr><td colspan="2">Fanlar yo\'q</td></tr>'}</tbody></table></div></div>`);
+    }
+    window.openSubjectForm = () => {
+        openModal(`<div class="modal-header"><h3 class="modal-title">Yangi fan</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="saveSubject(event)"><div class="form-group"><label>Fan nomi</label><input name="name" required></div><div class="form-group"><label>Tavsif</label><textarea name="description" rows="3"></textarea></div><div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div></form>`);
+    };
+    window.saveSubject = async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        await sb.from('subjects').insert(data);
+        closeModal();
+        renderSubjects();
+        showToast('Fan qo\'shildi');
+    };
+
+    async function renderDashboard() {
+        const branchId = await currentBranchId();
+        const [{ count:students }, { count:teachers }, { count:groups }] = await Promise.all([
+            sb.from('students').select('*', { count:'exact', head:true }).eq('is_active', true).eq('branch_id', branchId),
+            sb.from('users').select('*', { count:'exact', head:true }).eq('branch_id', branchId).eq('role', 'teacher'),
+            sb.from('groups').select('*', { count:'exact', head:true }).eq('branch_id', branchId)
+        ]);
+        setMain(`<div class="page-header"><div class="page-title"><h1>${escapeHtml(currentBranch?.name || 'Filial')}</h1><p>Boshqaruv paneli</p></div></div>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-value">${students || 0}</div><div class="stat-label">O'quvchilar</div></div>
+                <div class="stat-card"><div class="stat-value">${teachers || 0}</div><div class="stat-label">O'qituvchilar</div></div>
+                <div class="stat-card"><div class="stat-value">${groups || 0}</div><div class="stat-label">Guruhlar</div></div>
+            </div>`);
+    }
+
+    async function renderEmployees() {
+        const branchId = await currentBranchId();
+        const { data:teachers } = await sb.from('users').select('*, subjects(name)').eq('branch_id', branchId).eq('role', 'teacher').order('full_name');
+        setMain(`<div class="page-header"><h1>O'qituvchilar</h1><button class="btn btn-primary" onclick="openEmployeeForm()"><i class="fas fa-plus"></i> Qo'shish</button></div>
+        <div class="card"><div class="form-group"><input id="teacherSearchFilter" placeholder="O'qituvchi qidirish..." oninput="filterTeacherTable()"></div><div class="table-wrapper"><table><thead><tr><th>Ism</th><th>Login</th><th>Fan</th><th>Maosh turi</th><th>Miqdor</th><th>Amallar</th></tr></thead><tbody id="teachersTableBody">
+        ${(teachers || []).map(t => `<tr><td data-label="Ism">${escapeHtml(t.full_name)}</td><td data-label="Login">${escapeHtml(t.login)}</td><td data-label="Fan">${escapeHtml(t.subjects?.name || '-')}</td><td data-label="Maosh turi">${t.salary_type === 'percent' ? 'Foiz' : 'Qat\'iy'}</td><td data-label="Miqdor">${t.salary_type === 'percent' ? (t.salary_percent || 0) + '%' : formatNumber(t.salary || 0) + ' so\'m'}</td><td data-label="Amallar"><div class="action-icons"><div class="action-icon edit" onclick="editEmployeeForm('${t.id}')"><i class="fas fa-edit"></i></div><div class="action-icon delete" onclick="deleteEmployee('${t.id}', '${escapeHtml(t.full_name)}')"><i class="fas fa-trash"></i></div></div></td></tr>`).join('') || '<tr><td colspan="6">Topilmadi</td></tr>'}
+        </tbody></table></div></div>`);
+        window.filterTeacherTable = () => {
+            const value = document.getElementById('teacherSearchFilter').value.toLowerCase();
+            document.querySelectorAll('#teachersTableBody tr').forEach(row => row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none');
+        };
+    }
+
+    window.openEmployeeForm = async () => {
+        const branchId = await currentBranchId();
+        const { data:subjects } = await sb.from('subjects').select('*').order('name');
+        openModal(`<div class="modal-header"><h3 class="modal-title">Yangi o'qituvchi</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="saveEmployee(event)">
+            <div class="form-group"><label>To'liq ism</label><input name="full_name" required></div>
+            <div class="form-group"><label>Login</label><input name="login" required></div>
+            <div class="form-group"><label>Parol</label><input name="password" value="123456"></div>
+            <div class="form-group"><label>Telefon</label><input name="phone"></div>
+            <div class="form-group"><label>Fan</label><select name="subject_id"><option value="">Tanlanmagan</option>${(subjects || []).map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Maosh turi</label><select name="salary_type" id="empSalaryType" onchange="toggleSalaryFields()"><option value="fixed">Qat'iy maosh</option><option value="percent">Foiz (%)</option></select></div>
+            <div class="form-group" id="empFixedSalary"><label>Oylik maosh</label><input type="number" name="salary" value="0"></div>
+            <div class="form-group hidden" id="empPercentSalary"><label>Foiz (%)</label><input type="number" name="salary_percent" min="0" max="100" value="0"></div>
+            <input type="hidden" name="branch_id" value="${branchId}">
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+        window.toggleSalaryFields = () => {
+            const type = document.getElementById('empSalaryType')?.value;
+            document.getElementById('empFixedSalary')?.classList.toggle('hidden', type !== 'fixed');
+            document.getElementById('empPercentSalary')?.classList.toggle('hidden', type !== 'percent');
+        };
+    };
+
+    window.saveEmployee = async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const payload = {
+            full_name:data.full_name,
+            login:data.login,
+            password:data.password,
+            phone:data.phone,
+            role:'teacher',
+            branch_id:data.branch_id,
+            subject_id:data.subject_id || null,
+            salary_type:data.salary_type,
+            salary:data.salary_type === 'fixed' ? Number(data.salary || 0) : null,
+            salary_percent:data.salary_type === 'percent' ? Number(data.salary_percent || 0) : null,
+            is_active:true
+        };
+        const { error } = await sb.from('users').insert(payload);
+        if(error) { showToast(error.message, 'error'); return; }
+        closeModal();
+        renderEmployees();
+        showToast('O\'qituvchi qo\'shildi');
+    };
+
+    window.editEmployeeForm = async id => {
+        const [{ data:teacher }, { data:subjects }] = await Promise.all([
+            sb.from('users').select('*').eq('id', id).single(),
+            sb.from('subjects').select('*').order('name')
+        ]);
+        openModal(`<div class="modal-header"><h3 class="modal-title">O'qituvchini tahrirlash</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="saveEmployeeEdit(event, '${id}')">
+            <div class="form-group"><label>Ism</label><input name="full_name" value="${escapeHtml(teacher.full_name)}" required></div>
+            <div class="form-group"><label>Login</label><input name="login" value="${escapeHtml(teacher.login)}" required></div>
+            <div class="form-group"><label>Yangi parol</label><input name="password" placeholder="Bo'sh qoldirilsa o'zgarmaydi"></div>
+            <div class="form-group"><label>Telefon</label><input name="phone" value="${escapeHtml(teacher.phone || '')}"></div>
+            <div class="form-group"><label>Fan</label><select name="subject_id"><option value="">Tanlanmagan</option>${(subjects || []).map(s => `<option value="${s.id}" ${teacher.subject_id === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Maosh turi</label><select name="salary_type" id="editSalaryType" onchange="toggleEditSalaryFields()"><option value="fixed" ${teacher.salary_type === 'fixed' ? 'selected' : ''}>Qat'iy</option><option value="percent" ${teacher.salary_type === 'percent' ? 'selected' : ''}>Foiz</option></select></div>
+            <div class="form-group" id="editFixedSalary"><label>Oylik maosh</label><input type="number" name="salary" value="${teacher.salary || 0}"></div>
+            <div class="form-group" id="editPercentSalary"><label>Foiz (%)</label><input type="number" name="salary_percent" value="${teacher.salary_percent || 0}"></div>
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+        window.toggleEditSalaryFields = () => {
+            const type = document.getElementById('editSalaryType')?.value;
+            document.getElementById('editFixedSalary').classList.toggle('hidden', type !== 'fixed');
+            document.getElementById('editPercentSalary').classList.toggle('hidden', type !== 'percent');
+        };
+        window.toggleEditSalaryFields();
+    };
+
+    window.saveEmployeeEdit = async (e, id) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const payload = {
+            full_name:data.full_name,
+            login:data.login,
+            phone:data.phone,
+            subject_id:data.subject_id || null,
+            salary_type:data.salary_type,
+            salary:data.salary_type === 'fixed' ? Number(data.salary || 0) : null,
+            salary_percent:data.salary_type === 'percent' ? Number(data.salary_percent || 0) : null
+        };
+        if(data.password) payload.password = data.password;
+        const { error } = await sb.from('users').update(payload).eq('id', id);
+        if(error) { showToast(error.message, 'error'); return; }
+        closeModal();
+        renderEmployees();
+        showToast('O\'qituvchi yangilandi');
+    };
+
+    window.deleteEmployee = async (id, name) => {
+        if(!confirm(`${name} o'qituvchini o'chirishni tasdiqlaysizmi?`)) return;
+        const { error } = await sb.from('users').delete().eq('id', id);
+        if(error) { showToast(error.message, 'error'); return; }
+        renderEmployees();
+        showToast('O\'qituvchi o\'chirildi');
+    };
+
+    async function renderStudents() {
+        const branchId = await currentBranchId();
+        const { data:students } = await sb.from('students').select('*').eq('branch_id', branchId).eq('is_active', true).order('full_name');
+        setMain(`<div class="page-header"><h1>O'quvchilar</h1><button class="btn btn-primary" onclick="openStudentForm()"><i class="fas fa-plus"></i> Qo'shish</button></div>
+        <div class="card"><div class="form-group"><input id="studentSearchFilter" placeholder="O'quvchi qidirish..." oninput="filterStudentTable()"></div><div class="table-wrapper"><table><thead><tr><th>Ism</th><th>Telefon</th><th>Login</th><th>Amallar</th></tr></thead><tbody id="studentsTableBody">
+        ${(students || []).map(s => `<tr><td data-label="Ism">${escapeHtml(s.full_name)}</td><td data-label="Telefon">${escapeHtml(s.phone || '-')}</td><td data-label="Login">${escapeHtml(s.login || '-')}</td><td data-label="Amallar"><div class="action-icons"><div class="action-icon edit" onclick="editStudent('${s.id}')"><i class="fas fa-edit"></i></div><div class="action-icon" onclick="archiveStudent('${s.id}', '${escapeHtml(s.full_name)}')"><i class="fas fa-archive"></i></div></div></td></tr>`).join('') || '<tr><td colspan="4">Topilmadi</td></tr>'}
+        </tbody></table></div></div>`);
+        window.filterStudentTable = () => {
+            const value = document.getElementById('studentSearchFilter').value.toLowerCase();
+            document.querySelectorAll('#studentsTableBody tr').forEach(row => row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none');
+        };
+    }
+
+    window.openStudentForm = async () => {
+        const branchId = await currentBranchId();
+        const { data:groups } = await sb.from('groups').select('*').eq('branch_id', branchId).eq('status', 'active').order('name');
+        openModal(`<div class="modal-header"><h3 class="modal-title">Yangi o'quvchi</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="saveStudent(event)">
+            <div class="form-group"><label>To'liq ism</label><input name="full_name" required></div>
+            <div class="form-group"><label>Telefon</label><input name="phone"></div>
+            <div class="form-group"><label>Login</label><input name="login"></div>
+            <div class="form-group"><label>Parol</label><input name="password"></div>
+            <div class="form-group"><label>Ota-ona ismi</label><input name="parent_name"></div>
+            <div class="form-group"><label>Ota-ona telefoni</label><input name="parent_phone"></div>
+            <div class="form-group"><label>Guruhga qo'shish</label><select name="group_id"><option value="">Keyinroq</option>${(groups || []).map(g => `<option value="${g.id}">${escapeHtml(g.name)} - ${formatNumber(g.price)} so'm</option>`).join('')}</select></div>
+            <div class="form-group"><label>Chegirma (%)</label><input type="number" name="discount_percent" value="0" min="0" max="100"></div>
+            <input type="hidden" name="branch_id" value="${branchId}">
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+    };
+
+    window.saveStudent = async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const { data:newStudent, error } = await sb.from('students').insert({
+            full_name:data.full_name,
+            phone:data.phone,
+            login:data.login,
+            password:data.password,
+            parent_name:data.parent_name,
+            parent_phone:data.parent_phone,
+            branch_id:data.branch_id,
+            is_active:true
+        }).select().single();
+        if(error) { showToast(error.message, 'error'); return; }
+        if(data.group_id) {
+            await sb.from('group_students').insert({
+                group_id:data.group_id,
+                student_id:newStudent.id,
+                status:'active',
+                joined_date:todayIso(),
+                discount_percent:Number(data.discount_percent || 0)
+            });
+        }
+        closeModal();
+        renderStudents();
+        showToast('O\'quvchi qo\'shildi');
+    };
+
+    window.editStudent = async id => {
+        const { data:student } = await sb.from('students').select('*').eq('id', id).single();
+        openModal(`<div class="modal-header"><h3 class="modal-title">O'quvchini tahrirlash</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="saveStudentEdit(event, '${id}')">
+            <div class="form-group"><label>Ism</label><input name="full_name" value="${escapeHtml(student.full_name)}" required></div>
+            <div class="form-group"><label>Telefon</label><input name="phone" value="${escapeHtml(student.phone || '')}"></div>
+            <div class="form-group"><label>Login</label><input name="login" value="${escapeHtml(student.login || '')}"></div>
+            <div class="form-group"><label>Yangi parol</label><input name="password"></div>
+            <div class="form-group"><label>Ota-ona</label><input name="parent_name" value="${escapeHtml(student.parent_name || '')}"></div>
+            <div class="form-group"><label>Ota-ona telefoni</label><input name="parent_phone" value="${escapeHtml(student.parent_phone || '')}"></div>
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+    };
+
+    window.saveStudentEdit = async (e, id) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const payload = {
+            full_name:data.full_name,
+            phone:data.phone,
+            login:data.login,
+            parent_name:data.parent_name,
+            parent_phone:data.parent_phone
+        };
+        if(data.password) payload.password = data.password;
+        const { error } = await sb.from('students').update(payload).eq('id', id);
+        if(error) { showToast(error.message, 'error'); return; }
+        closeModal();
+        renderStudents();
+        showToast('O\'quvchi yangilandi');
+    };
+
+    window.archiveStudent = async (id, name) => {
+        if(!confirm(`${name} o'quvchini arxivlashni tasdiqlaysizmi?`)) return;
+        const { error } = await sb.from('students').update({ is_active:false }).eq('id', id);
+        if(error) { showToast(error.message, 'error'); return; }
+        renderStudents();
+        showToast('O\'quvchi arxivlandi', 'warning');
+    };
+
+    async function renderGroups() {
+        const branchId = await currentBranchId();
+        const { data:groups } = await sb.from('groups').select('*, subjects(name), users!groups_teacher_id_fkey(full_name, phone)').eq('branch_id', branchId).order('name');
+        const groupIds = (groups || []).map(g => g.id);
+        const [{ data:schedules }, { data:groupStudents }] = await Promise.all([
+            groupIds.length ? sb.from('schedules').select('*').in('group_id', groupIds) : Promise.resolve({ data:[] }),
+            groupIds.length ? sb.from('group_students').select('group_id, status').in('group_id', groupIds) : Promise.resolve({ data:[] })
+        ]);
+        const scheduleMap = {};
+        (schedules || []).forEach(s => {
+            scheduleMap[s.group_id] = scheduleMap[s.group_id] || [];
+            scheduleMap[s.group_id].push(s);
+        });
+        const activeCounts = {};
+        (groupStudents || []).forEach(gs => {
+            if(gs.status === 'active') activeCounts[gs.group_id] = (activeCounts[gs.group_id] || 0) + 1;
+        });
+        const dayNames = ['', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'];
+
+        let html = `<div class="page-header"><h1>Guruhlar</h1><button class="btn btn-primary" onclick="openGroupForm()"><i class="fas fa-plus"></i> Yangi guruh</button></div>`;
+        if(!groups || groups.length === 0) {
+            setMain(html + '<div class="card text-center">Guruh mavjud emas</div>');
+            return;
+        }
+        html += '<div class="groups-container">';
+        groups.forEach(g => {
+            const scheduleText = (scheduleMap[g.id] || []).map(s => `${dayNames[s.day_of_week] || ''} ${String(s.start_time || '').slice(0,5)}-${String(s.end_time || '').slice(0,5)}`).join(' | ') || 'Jadval yo\'q';
+            html += `<div class="branch-card" onclick="renderGroupDetail('${g.id}')">
+                <div class="branch-card-icon">${escapeHtml((g.name || '?').charAt(0)).toUpperCase()}</div>
+                <div class="branch-card-info">
+                    <h3>${escapeHtml(g.name)} <span class="badge ${g.status === 'active' ? 'badge-success' : 'badge-warning'}">${escapeHtml(g.status || 'active')}</span></h3>
+                    <p><i class="fas fa-book"></i> ${escapeHtml(g.subjects?.name || '-')}</p>
+                    <p><i class="fas fa-user-tie"></i> ${escapeHtml(g.users?.full_name || '-')}</p>
+                    <p><i class="fas fa-calendar-alt"></i> ${escapeHtml(scheduleText)}</p>
+                    <p><i class="fas fa-users"></i> ${activeCounts[g.id] || 0}${g.capacity ? ' / ' + g.capacity : ''} ta o'quvchi</p>
+                </div>
+                <div class="branch-card-actions">
+                    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); renderGroupDetail('${g.id}')"><i class="fas fa-eye"></i> Ko'rish</button>
+                    <div class="btn-icon delete" onclick="event.stopPropagation(); deleteGroup('${g.id}', '${escapeHtml(g.name)}')"><i class="fas fa-trash"></i></div>
+                </div>
+            </div>`;
+        });
+        html += '</div>';
+        setMain(html);
+    }
+
+    window.openGroupForm = async () => {
+        const branchId = await currentBranchId();
+        const [{ data:subjects }, { data:teachers }] = await Promise.all([
+            sb.from('subjects').select('*').order('name'),
+            sb.from('users').select('*').eq('branch_id', branchId).eq('role', 'teacher').order('full_name')
+        ]);
+        openModal(`<div class="modal-header"><h3 class="modal-title">Yangi guruh</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="saveGroup(event)">
+            <div class="form-group"><label>Nomi</label><input name="name" required></div>
+            <div class="form-group"><label>Fan</label><select name="subject_id"><option value="">Tanlanmagan</option>${(subjects || []).map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('')}</select></div>
+            <div class="form-group"><label>O'qituvchi</label><select name="teacher_id"><option value="">Tanlanmagan</option>${(teachers || []).map(t => `<option value="${t.id}">${escapeHtml(t.full_name)}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Oylik to'lov</label><input type="number" name="price" value="0"></div>
+            <div class="form-group"><label>Limit</label><input type="number" name="capacity" placeholder="Cheksiz"></div>
+            <div class="form-group"><label>Tugash sanasi</label><input type="date" name="end_date"></div>
+            <input type="hidden" name="branch_id" value="${branchId}">
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+    };
+
+    window.saveGroup = async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const payload = {
+            name:data.name,
+            subject_id:data.subject_id || null,
+            teacher_id:data.teacher_id || null,
+            price:Number(data.price || 0),
+            capacity:data.capacity ? Number(data.capacity) : null,
+            end_date:data.end_date || null,
+            branch_id:data.branch_id,
+            status:'active'
+        };
+        const { error } = await sb.from('groups').insert(payload);
+        if(error) { showToast(error.message, 'error'); return; }
+        closeModal();
+        renderGroups();
+        showToast('Guruh yaratildi');
+    };
+
+    window.deleteGroup = async (groupId, name) => {
+        if(!confirm(`${name} guruhini o'chirishni tasdiqlaysizmi?`)) return;
+        await sb.from('attendance').delete().eq('group_id', groupId);
+        await sb.from('student_performance').delete().eq('group_id', groupId);
+        await sb.from('group_students').delete().eq('group_id', groupId);
+        await sb.from('payments').delete().eq('group_id', groupId);
+        await sb.from('schedules').delete().eq('group_id', groupId);
+        const { error } = await sb.from('groups').delete().eq('id', groupId);
+        if(error) { showToast(error.message, 'error'); return; }
+        renderGroups();
+        showToast('Guruh o\'chirildi');
+    };
+
+    window.renderGroupDetail = async groupId => {
+        selectedGroupId = groupId;
+        const [{ data:group }, { data:schedule }, { data:activeStudents }] = await Promise.all([
+            sb.from('groups').select('*, subjects(name), users!groups_teacher_id_fkey(full_name, phone)').eq('id', groupId).single(),
+            sb.from('schedules').select('*').eq('group_id', groupId).order('day_of_week'),
+            sb.from('group_students').select('id').eq('group_id', groupId).eq('status', 'active')
+        ]);
+        const dayNames = ['', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'];
+        const scheduleText = (schedule || []).map(s => `${dayNames[s.day_of_week] || ''} ${String(s.start_time || '').slice(0,5)}-${String(s.end_time || '').slice(0,5)}`).join(', ') || 'Jadval yo\'q';
+        setMain(`<div class="page-header">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button class="btn btn-sm" onclick="renderGroups()"><i class="fas fa-arrow-left"></i></button>
+                <div><h1>${escapeHtml(group.name)}</h1><p style="color:var(--gray); font-size:13px;">${escapeHtml(group.subjects?.name || '-')} - ${escapeHtml(group.users?.full_name || '-')}</p></div>
+            </div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value">${formatNumber(group.price)} so'm</div><div class="stat-label">Oylik to'lov</div></div>
+            <div class="stat-card"><div class="stat-value">${activeStudents?.length || 0}${group.capacity ? '/' + group.capacity : ''}</div><div class="stat-label">O'quvchilar</div></div>
+            <div class="stat-card"><div class="stat-value" style="font-size:14px;">${escapeHtml(scheduleText)}</div><div class="stat-label">Dars jadvali</div></div>
+        </div>
+        <div class="tab-buttons" id="groupMainTabs">
+            <button class="tab-btn active" data-tab="students">O'quvchilar</button>
+            <button class="tab-btn" data-tab="payments">To'lovlar</button>
+            <button class="tab-btn" data-tab="schedule">Jadval</button>
+            <button class="tab-btn" data-tab="attendance">Davomat</button>
+            <button class="tab-btn" data-tab="frozen">Muzlatilgan</button>
+        </div>
+        <div id="studentsTab" class="tab-content active"><div id="groupStudentsList">Yuklanmoqda...</div></div>
+        <div id="paymentsTab" class="tab-content"><div id="groupPaymentsList">Yuklanmoqda...</div></div>
+        <div id="scheduleTab" class="tab-content"><div id="groupScheduleList">Yuklanmoqda...</div></div>
+        <div id="attendanceTab" class="tab-content"><div id="groupAttendanceContainer">Yuklanmoqda...</div></div>
+        <div id="frozenTab" class="tab-content"><div id="groupFrozenList">Yuklanmoqda...</div></div>`);
+
+        document.querySelectorAll('#groupMainTabs .tab-btn').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('#groupMainTabs .tab-btn').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                ['students','payments','schedule','attendance','frozen'].forEach(id => document.getElementById(id + 'Tab').classList.toggle('active', tab.dataset.tab === id));
+            });
+        });
+        await loadGroupStudents(groupId);
+        await loadGroupPayments(groupId);
+        await loadGroupSchedule(groupId);
+        await loadGroupAttendanceTab(groupId);
+        await loadGroupFrozenStudents(groupId);
+    };
+
+    async function loadGroupStudents(groupId) {
+        const [{ data:rels }, { data:group }] = await Promise.all([
+            sb.from('group_students').select('*, students(full_name, phone)').eq('group_id', groupId).eq('status', 'active'),
+            sb.from('groups').select('price').eq('id', groupId).single()
+        ]);
+        const container = document.getElementById('groupStudentsList');
+        if(!container) return;
+        if(!rels || rels.length === 0) {
+            container.innerHTML = `<div class="card text-center" style="color:var(--gray);">O'quvchi mavjud emas</div><button class="btn btn-sm btn-primary" onclick="openAddStudentToGroup('${groupId}')"><i class="fas fa-plus"></i> Qo'shish</button>`;
+            return;
+        }
+        let totalPaid = 0;
+        let rows = '';
+        for(const rel of rels) {
+            const discount = Number(rel.discount_percent) || 0;
+            const finalPrice = Math.round((Number(group?.price) || 0) * (1 - discount / 100));
+            const { data:payments } = await sb.from('payments').select('amount').eq('student_id', rel.student_id).eq('group_id', groupId);
+            const paid = (payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+            totalPaid += paid;
+            rows += `<tr>
+                <td data-label="O'quvchi">${escapeHtml(rel.students?.full_name || '-')} ${discount ? `<span class="badge badge-warning">-${discount}%</span>` : ''}</td>
+                <td data-label="Telefon">${escapeHtml(rel.students?.phone || '-')}</td>
+                <td data-label="Sana">${formatDate(rel.joined_date)}</td>
+                <td data-label="To'lov">${formatNumber(paid)} / ${formatNumber(finalPrice)} so'm</td>
+                <td data-label="Amallar"><div class="action-icons"><div class="action-icon pay" onclick="openPaymentForGroupStudent('${rel.student_id}', '${groupId}', '${escapeHtml(rel.students?.full_name || '')}')"><i class="fas fa-money-bill-wave"></i></div><div class="action-icon" onclick="freezeStudentInGroup('${rel.id}', '${groupId}')"><i class="fas fa-snowflake"></i></div><div class="action-icon delete" onclick="removeStudentFromGroup('${rel.id}', '${groupId}')"><i class="fas fa-user-minus"></i></div></div></td>
+            </tr>`;
+        }
+        container.innerHTML = `<div class="table-wrapper"><table><thead><tr><th>O'quvchi</th><th>Telefon</th><th>Sana</th><th>To'lov</th><th>Amallar</th></tr></thead><tbody>${rows}</tbody></table></div><div class="stat-card" style="margin-top:12px; text-align:right;"><strong>Jami yig'ilgan: ${formatNumber(totalPaid)} so'm</strong></div><div style="margin-top:10px;"><button class="btn btn-sm btn-primary" onclick="openAddStudentToGroup('${groupId}')"><i class="fas fa-plus"></i> Yangi o'quvchi</button></div>`;
+    }
+    window.loadGroupStudents = loadGroupStudents;
+
+    window.openAddStudentToGroup = async groupId => {
+        const branchId = await currentBranchId();
+        const { data:students } = await sb.from('students').select('*').eq('branch_id', branchId).eq('is_active', true).order('full_name');
+        openModal(`<div class="modal-header"><h3 class="modal-title">O'quvchi qo'shish</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="saveGroupStudent(event, '${groupId}')">
+            <div class="form-group"><label>O'quvchi</label><select name="student_id" required>${(students || []).map(s => `<option value="${s.id}">${escapeHtml(s.full_name)} - ${escapeHtml(s.phone || '')}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Sana</label><input type="date" name="joined_date" value="${todayIso()}" required></div>
+            <div class="form-group"><label>Chegirma (%)</label><input type="number" name="discount_percent" min="0" max="100" value="0"></div>
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+    };
+
+    window.saveGroupStudent = async (e, groupId) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const { error } = await sb.from('group_students').insert({ ...data, group_id:groupId, status:'active', discount_percent:Number(data.discount_percent || 0) });
+        if(error) { showToast(error.message, 'error'); return; }
+        closeModal();
+        await loadGroupStudents(groupId);
+        showToast('O\'quvchi guruhga qo\'shildi');
+    };
+
+    window.freezeStudentInGroup = async (groupStudentId, groupId) => {
+        if(!confirm('O\'quvchini vaqtincha muzlatishni tasdiqlaysizmi?')) return;
+        await sb.from('group_students').update({ status:'frozen' }).eq('id', groupStudentId);
+        await loadGroupStudents(groupId);
+        await loadGroupFrozenStudents(groupId);
+        if(document.getElementById('attendanceDataContainer')) refreshGroupAttendance(groupId);
+        showToast('O\'quvchi muzlatildi');
+    };
+
+    window.restoreStudentFromFrozen = async (groupStudentId, groupId) => {
+        await sb.from('group_students').update({ status:'active' }).eq('id', groupStudentId);
+        await loadGroupStudents(groupId);
+        await loadGroupFrozenStudents(groupId);
+        if(document.getElementById('attendanceDataContainer')) refreshGroupAttendance(groupId);
+        showToast('O\'quvchi qaytarildi');
+    };
+
+    window.removeStudentFromGroup = async (id, groupId) => {
+        if(!confirm('O\'quvchini guruhdan chiqarasizmi?')) return;
+        await sb.from('group_students').update({ status:'left', left_date:todayIso() }).eq('id', id);
+        await loadGroupStudents(groupId);
+        showToast('Guruhdan chiqarildi');
+    };
+
+    async function loadGroupFrozenStudents(groupId) {
+        const { data:frozen } = await sb.from('group_students').select('*, students(full_name, phone)').eq('group_id', groupId).eq('status', 'frozen');
+        const container = document.getElementById('groupFrozenList');
+        if(!container) return;
+        if(!frozen || frozen.length === 0) {
+            container.innerHTML = '<div class="card text-center" style="color:var(--gray);">Muzlatilgan o\'quvchilar yo\'q</div>';
+            return;
+        }
+        container.innerHTML = (frozen || []).map(f => `<div class="admin-card frozen-row"><div class="admin-avatar">${escapeHtml((f.students?.full_name || '?').charAt(0)).toUpperCase()}</div><div class="admin-info"><h3>${escapeHtml(f.students?.full_name || '-')}</h3><p><i class="fas fa-phone"></i> ${escapeHtml(f.students?.phone || '-')}</p></div><div class="action-icons"><div class="action-icon" onclick="restoreStudentFromFrozen('${f.id}', '${groupId}')"><i class="fas fa-undo"></i></div></div></div>`).join('');
+    }
+    window.loadGroupFrozenStudents = loadGroupFrozenStudents;
+
+    async function loadGroupPayments(groupId) {
+        const { data:pays } = await sb.from('payments').select('*, students(full_name)').eq('group_id', groupId).order('payment_date', { ascending:false });
+        const container = document.getElementById('groupPaymentsList');
+        if(!container) return;
+        let total = 0;
+        const rows = (pays || []).map(p => {
+            total += Number(p.amount) || 0;
+            return `<tr><td data-label="Sana">${formatDate(p.payment_date)}</td><td data-label="O'quvchi">${escapeHtml(p.students?.full_name || '-')}</td><td data-label="Summa" style="color:#34d399;">${formatNumber(p.amount)} so'm</td><td data-label="Tur">${getPaymentTypeLabel(p.payment_type)}</td></tr>`;
+        }).join('');
+        container.innerHTML = `<div class="table-wrapper"><table><thead><tr><th>Sana</th><th>O'quvchi</th><th>Summa</th><th>Tur</th></tr></thead><tbody>${rows || '<tr><td colspan="4">To\'lovlar yo\'q</td></tr>'}</tbody></table></div><div class="stat-card" style="margin-top:12px; text-align:right;"><strong>Jami: ${formatNumber(total)} so'm</strong></div>`;
+    }
+    window.loadGroupPayments = loadGroupPayments;
+
+    async function loadGroupSchedule(groupId) {
+        const { data:schedule } = await sb.from('schedules').select('*').eq('group_id', groupId).order('day_of_week');
+        const container = document.getElementById('groupScheduleList');
+        if(!container) return;
+        const days = ['', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'];
+        const rows = (schedule || []).map(s => `<tr><td data-label="Kun">${days[s.day_of_week]}</td><td data-label="Boshlanish">${String(s.start_time || '').slice(0,5)}</td><td data-label="Tugash">${String(s.end_time || '').slice(0,5)}</td><td data-label="Xona">${escapeHtml(s.room || '-')}</td><td data-label="Amallar"><div class="action-icons"><div class="action-icon delete" onclick="deleteSchedule('${s.id}', '${groupId}')"><i class="fas fa-trash"></i></div></div></td></tr>`).join('');
+        container.innerHTML = `<div class="table-wrapper"><table><thead><tr><th>Kun</th><th>Boshlanish</th><th>Tugash</th><th>Xona</th><th>Amallar</th></tr></thead><tbody>${rows || '<tr><td colspan="5">Jadval yo\'q</td></tr>'}</tbody></table></div><div style="margin-top:12px;"><button class="btn btn-sm btn-primary" onclick="openScheduleForm('${groupId}')"><i class="fas fa-plus"></i> Dars qo'shish</button></div>`;
+    }
+    window.loadGroupSchedule = loadGroupSchedule;
+
+    window.openScheduleForm = groupId => {
+        const days = [{v:1,l:'Dushanba'}, {v:2,l:'Seshanba'}, {v:3,l:'Chorshanba'}, {v:4,l:'Payshanba'}, {v:5,l:'Juma'}, {v:6,l:'Shanba'}, {v:7,l:'Yakshanba'}];
+        openModal(`<div class="modal-header"><h3 class="modal-title">Dars jadvali</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="saveSchedule(event, '${groupId}')">
+            <div class="form-group"><label>Dars kunlari</label><div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px;">${days.map(d => `<label style="display:flex; align-items:center; gap:8px; margin:0;"><input type="checkbox" name="days" value="${d.v}" style="width:auto;"> ${d.l}</label>`).join('')}</div></div>
+            <div class="form-group"><label>Boshlanish</label><input type="time" name="start_time" required></div>
+            <div class="form-group"><label>Tugash</label><input type="time" name="end_time" required></div>
+            <div class="form-group"><label>Xona</label><input name="room"></div>
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+    };
+
+    window.saveSchedule = async (e, groupId) => {
+        e.preventDefault();
+        const form = e.target;
+        const days = [...form.querySelectorAll('input[name="days"]:checked')].map(x => Number(x.value));
+        if(days.length === 0) { showToast('Kamida bitta kunni tanlang', 'error'); return; }
+        const inserts = days.map(day => ({ group_id:groupId, day_of_week:day, start_time:form.start_time.value, end_time:form.end_time.value, room:form.room.value || null }));
+        const { error } = await sb.from('schedules').insert(inserts);
+        if(error) { showToast(error.message, 'error'); return; }
+        closeModal();
+        if(document.getElementById('groupScheduleList')) await loadGroupSchedule(groupId);
+        if(document.getElementById('attendanceDataContainer')) refreshGroupAttendance(groupId);
+        showToast('Dars jadvali saqlandi');
+    };
+
+    window.deleteSchedule = async (id, groupId) => {
+        if(!confirm('Darsni jadvaldan o\'chirasizmi?')) return;
+        await sb.from('schedules').delete().eq('id', id);
+        await loadGroupSchedule(groupId);
+        if(document.getElementById('attendanceDataContainer')) refreshGroupAttendance(groupId);
+        showToast('Dars o\'chirildi');
+    };
+
+    async function loadGroupAttendanceTab(groupId) {
+        const container = document.getElementById('groupAttendanceContainer');
+        if(!container) return;
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        container.innerHTML = `<div class="form-group" style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;"><div><label>Oy</label><select id="attMonthSelect" onchange="refreshGroupAttendance('${groupId}')">${Array.from({ length:12 }, (_, i) => `<option value="${i + 1}" ${i + 1 === month ? 'selected' : ''}>${new Date(2024, i).toLocaleString('uz-UZ', { month:'long' })}</option>`).join('')}</select></div><button class="btn btn-sm btn-primary" onclick="refreshGroupAttendance('${groupId}')"><i class="fas fa-sync-alt"></i> Yangilash</button></div><div id="attendanceDataContainer">Yuklanmoqda...</div>`;
+        refreshGroupAttendance(groupId);
+    }
+
+    window.refreshGroupAttendance = async groupId => {
+        const month = parseInt(document.getElementById('attMonthSelect')?.value) || new Date().getMonth() + 1;
+        const year = new Date().getFullYear();
+        const { start, end } = monthRange(year, month);
+        const container = document.getElementById('attendanceDataContainer');
+        if(!container) return;
+        const lessonDates = await getGroupLessonDates(groupId, year, month);
+        if(!lessonDates.length) {
+            container.innerHTML = '<div class="card text-center" style="color:var(--gray);">Bu oy uchun dars kuni topilmadi. Avval guruh jadvaliga dars kunlarini kiriting.</div>';
+            return;
+        }
+        const [{ data:studentsRel }, { data:attendance }, { data:performance }] = await Promise.all([
+            sb.from('group_students').select('*, students(full_name)').eq('group_id', groupId).in('status', ['active', 'frozen']),
+            sb.from('attendance').select('*').eq('group_id', groupId).gte('lesson_date', start).lte('lesson_date', end),
+            sb.from('student_performance').select('*').eq('group_id', groupId).gte('lesson_date', start).lte('lesson_date', end)
+        ]);
+        if(!studentsRel || studentsRel.length === 0) {
+            container.innerHTML = '<div class="card text-center" style="color:var(--gray);">O\'quvchilar yo\'q</div>';
+            return;
+        }
+        container.innerHTML = buildAttendanceTableHtml(groupId, studentsRel, attendance, performance, lessonDates);
+    };
+
+    window.openAttendanceMarker = async (groupId, studentId, dateStr, currentStatus) => {
+        const { data:gs } = await sb.from('group_students').select('status, students(full_name)').eq('group_id', groupId).eq('student_id', studentId).maybeSingle();
+        if(gs?.status === 'frozen') {
+            showToast('Bu o\'quvchi muzlatilgan, davomat belgilab bo\'lmaydi', 'error');
+            return;
+        }
+        const debt = await calculateStudentDebt(studentId, groupId);
+        openModal(`<div class="modal-header"><h3 class="modal-title">Davomat va o'zlashtirish</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <p style="color:var(--gray); margin-bottom:16px;">${escapeHtml(gs?.students?.full_name || '')} - ${dateStr}</p>
+        <form onsubmit="saveAttendanceAndPerformance(event, '${groupId}', '${studentId}', '${dateStr}')">
+            <div class="form-group"><label>Holat</label><div style="display:flex; gap:10px; flex-wrap:wrap;"><button type="button" class="btn btn-sm ${currentStatus === 'present' ? 'btn-success' : ''}" id="statusPresent" onclick="setAttendanceStatus('present')">Keldi</button><button type="button" class="btn btn-sm ${currentStatus === 'absent' ? 'btn-danger' : ''}" id="statusAbsent" onclick="setAttendanceStatus('absent')">Kelmadi</button><button type="button" class="btn btn-sm ${currentStatus === 'late' ? 'btn-warning' : ''}" id="statusLate" onclick="setAttendanceStatus('late')">Kechikdi</button></div><input type="hidden" name="status" id="attStatusInput" value="${currentStatus || 'present'}"></div>
+            <div class="form-group"><label>O'zlashtirish (%)</label><input type="number" name="percentage" min="0" max="100" value="50"></div>
+            <div class="form-group"><label>Qarzdorlik</label><div class="stat-card" style="color:#fbbf24; font-weight:700;">${formatNumber(debt)} so'm</div></div>
+            <div class="form-group"><label>Izoh</label><textarea name="note" rows="2"></textarea></div>
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+        window.setAttendanceStatus = status => {
+            document.getElementById('attStatusInput').value = status;
+            document.getElementById('statusPresent').className = `btn btn-sm ${status === 'present' ? 'btn-success' : ''}`;
+            document.getElementById('statusAbsent').className = `btn btn-sm ${status === 'absent' ? 'btn-danger' : ''}`;
+            document.getElementById('statusLate').className = `btn btn-sm ${status === 'late' ? 'btn-warning' : ''}`;
+        };
+    };
+
+    window.saveAttendanceAndPerformance = async (e, groupId, studentId, dateStr) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const { data:existing } = await sb.from('attendance').select('id').eq('group_id', groupId).eq('student_id', studentId).eq('lesson_date', dateStr).maybeSingle();
+        const attendancePayload = { status:data.status, note:data.note || null };
+        if(existing) await sb.from('attendance').update(attendancePayload).eq('id', existing.id);
+        else await sb.from('attendance').insert({ group_id:groupId, student_id:studentId, lesson_date:dateStr, ...attendancePayload });
+
+        const percentage = Number(data.percentage);
+        if(!Number.isNaN(percentage)) {
+            const { data:perfExist } = await sb.from('student_performance').select('id').eq('group_id', groupId).eq('student_id', studentId).eq('lesson_date', dateStr).maybeSingle();
+            if(perfExist) await sb.from('student_performance').update({ percentage }).eq('id', perfExist.id);
+            else await sb.from('student_performance').insert({ group_id:groupId, student_id:studentId, lesson_date:dateStr, percentage });
+        }
+        closeModal();
+        if(selectedGroupId) refreshGroupAttendance(selectedGroupId);
+        if(currentTeacherGroupId && typeof window.loadTeacherAttendanceTable === 'function') window.loadTeacherAttendanceTable();
+        if(document.getElementById('attendanceTable')) window.loadAttendanceTable();
+        showToast('Davomat saqlandi');
+    };
+
+    window.openPaymentForGroupStudent = async (sid, gid, sname) => {
+        const [{ data:group }, { data:rel }, debt] = await Promise.all([
+            sb.from('groups').select('name, price').eq('id', gid).single(),
+            sb.from('group_students').select('discount_percent').eq('student_id', sid).eq('group_id', gid).maybeSingle(),
+            calculateStudentDebt(sid, gid)
+        ]);
+        const discount = Number(rel?.discount_percent) || 0;
+        const finalPrice = Math.round((Number(group?.price) || 0) * (1 - discount / 100));
+        openModal(`<div class="modal-header"><h3 class="modal-title">To'lov</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <p style="margin-bottom:16px;">${escapeHtml(sname)} - ${escapeHtml(group?.name || '')}</p>
+        <form onsubmit="saveGroupStudentPayment(event, '${sid}', '${gid}')">
+            <div class="form-group"><label>Jami qarz</label><div class="stat-card" style="color:#fbbf24; font-weight:700;">${formatNumber(debt)} so'm</div></div>
+            <div class="form-group"><label>Summa</label><input type="number" name="amount" min="1" value="${finalPrice}" required></div>
+            <div class="form-group"><label>To'lov turi</label><select name="payment_type"><option value="cash">Naqd</option><option value="card">Karta</option><option value="click">Click</option><option value="payme">Payme</option><option value="waived">Kechirildi</option></select></div>
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+    };
+
+    window.saveGroupStudentPayment = async (e, sid, gid) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const amount = data.payment_type === 'waived' ? 0 : Number(data.amount || 0);
+        const { error } = await sb.from('payments').insert({ student_id:sid, group_id:gid, amount, payment_type:data.payment_type, payment_date:todayIso() });
+        if(error) { showToast(error.message, 'error'); return; }
+        closeModal();
+        if(selectedGroupId) {
+            await loadGroupStudents(selectedGroupId);
+            await loadGroupPayments(selectedGroupId);
+        }
+        showToast('To\'lov saqlandi');
+    };
+
+    async function renderFinance() {
+        const branchId = await currentBranchId();
+        const { data:groups } = await sb.from('groups').select('id').eq('branch_id', branchId);
+        const groupIds = (groups || []).map(g => g.id);
+        let pays = [];
+        if(groupIds.length > 0) {
+            const { data } = await sb.from('payments').select('*, students(full_name), groups(name)').in('group_id', groupIds).order('payment_date', { ascending:false }).limit(250);
+            pays = data || [];
+        }
+        window.financePayments = pays;
+        setMain(`<div class="page-header"><div class="page-title"><h1>To'lovlar</h1><p>Qisqartirilgan va ixcham jadval</p></div><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="btn btn-primary" onclick="openPaymentForm()"><i class="fas fa-plus"></i> To'lov</button><button class="btn btn-warning" onclick="renderReports()"><i class="fas fa-chart-line"></i> Analitika</button></div></div>
+        <div class="card">
+            <div class="form-group" style="display:flex; flex-wrap:wrap; gap:12px; align-items:end;">
+                <div style="flex:1; min-width:180px;"><label>O'quvchi</label><input id="financeFilterName" placeholder="Ism bo'yicha..." oninput="renderFinanceTable()"></div>
+                <div style="flex:1; min-width:150px;"><label>Sana</label><input id="financeFilterDate" type="date" onchange="renderFinanceTable()"></div>
+                <div style="flex:1; min-width:150px;"><label>To'lov turi</label><select id="financeFilterType" onchange="renderFinanceTable()"><option value="">Barchasi</option><option value="cash">Naqd</option><option value="card">Karta</option><option value="click">Click</option><option value="payme">Payme</option><option value="waived">Kechirildi</option></select></div>
+            </div>
+            <div class="stats-grid"><div class="stat-card"><div class="stat-value text-success">${formatNumber(pays.filter(p => p.payment_type !== 'waived').reduce((s, p) => s + (Number(p.amount) || 0), 0))} so'm</div><div class="stat-label">Jami daromad</div></div><div class="stat-card"><div class="stat-value">${pays.length}</div><div class="stat-label">Yozuvlar</div></div></div>
+            <div id="financeTableContainer"></div>
+        </div>`);
+        window.renderFinanceTable = () => {
+            const name = document.getElementById('financeFilterName').value.toLowerCase();
+            const date = document.getElementById('financeFilterDate').value;
+            const type = document.getElementById('financeFilterType').value;
+            const rows = (window.financePayments || []).filter(p => {
+                const studentName = p.students?.full_name?.toLowerCase() || '';
+                if(name && !studentName.includes(name)) return false;
+                if(date && (p.payment_date || '') !== date) return false;
+                if(type && (p.payment_type || '') !== type) return false;
+                return true;
+            }).map(p => {
+                const amountColor = p.payment_type === 'waived' ? '#f59e0b' : '#10b981';
+                const studentName = escapeHtml(p.students?.full_name || '-');
+                const groupName = escapeHtml(p.groups?.name || '-');
+                return `<tr>
+                    <td data-label="Sana">${formatDate(p.payment_date)}</td>
+                    <td data-label="O'quvchi"><span class="ellipsis" title="${studentName}">${studentName}</span></td>
+                    <td data-label="Guruh"><span class="ellipsis" title="${groupName}">${groupName}</span></td>
+                    <td data-label="Summa" style="color:${amountColor};">${formatNumber(p.amount)} so'm</td>
+                    <td data-label="Tur">${getPaymentTypeLabel(p.payment_type)}</td>
+                    <td data-label="ID"><span class="muted-small" title="${escapeHtml(p.id || '-')}">${shortId(p.id)}</span></td>
+                    <td data-label=""><div class="action-icons"><div class="action-icon delete" onclick="archivePayment('${p.id}')"><i class="fas fa-archive"></i></div></div></td>
+                </tr>`;
+            }).join('');
+            document.getElementById('financeTableContainer').innerHTML = `<div class="table-wrapper compact-table"><table><thead><tr><th class="col-date">Sana</th><th class="col-student">O'quvchi</th><th class="col-group">Guruh</th><th class="col-amount">Summa</th><th class="col-type">Tur</th><th class="col-id">ID</th><th class="col-action"></th></tr></thead><tbody>${rows || '<tr><td colspan="7" style="text-align:center; color:var(--gray);">Natija topilmadi</td></tr>'}</tbody></table></div>`;
+        };
+        window.renderFinanceTable();
+    }
+
+    window.openPaymentForm = async () => {
+        const branchId = await currentBranchId();
+        const [{ data:students }, { data:groups }] = await Promise.all([
+            sb.from('students').select('*').eq('branch_id', branchId).eq('is_active', true).order('full_name'),
+            sb.from('groups').select('*').eq('branch_id', branchId).order('name')
+        ]);
+        openModal(`<div class="modal-header"><h3 class="modal-title">To'lov</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="savePayment(event)">
+            <div class="form-group"><label>O'quvchi</label><select name="student_id" required onchange="updatePaymentDebtInfo()">${(students || []).map(s => `<option value="${s.id}">${escapeHtml(s.full_name)}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Guruh</label><select name="group_id" required onchange="updatePaymentDebtInfo()">${(groups || []).map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Summa</label><input type="number" name="amount" min="1" required></div>
+            <div class="form-group"><label>Tur</label><select name="payment_type"><option value="cash">Naqd</option><option value="card">Karta</option><option value="click">Click</option><option value="payme">Payme</option><option value="waived">Kechirildi</option></select></div>
+            <div class="form-group" id="paymentDebtInfo" style="padding:12px; border-radius:12px; background:rgba(245,158,11,.1); color:#fbbf24; font-weight:700;">Qarz yuklanmoqda...</div>
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+        setTimeout(updatePaymentDebtInfo, 100);
+    };
+
+    window.updatePaymentDebtInfo = async () => {
+        const studentId = document.querySelector('[name="student_id"]')?.value;
+        const groupId = document.querySelector('[name="group_id"]')?.value;
+        const info = document.getElementById('paymentDebtInfo');
+        if(!info) return;
+        if(!studentId || !groupId) { info.textContent = 'O\'quvchi va guruhni tanlang'; return; }
+        const debt = await calculateStudentDebt(studentId, groupId);
+        info.textContent = `Jami qarz: ${formatNumber(debt)} so'm`;
+    };
+
+    window.savePayment = async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const amount = data.payment_type === 'waived' ? 0 : Number(data.amount || 0);
+        const { error } = await sb.from('payments').insert({ student_id:data.student_id, group_id:data.group_id, amount, payment_type:data.payment_type, payment_date:todayIso() });
+        if(error) { showToast(error.message, 'error'); return; }
+        closeModal();
+        renderFinance();
+        showToast('To\'lov saqlandi');
+    };
+
+    window.archivePayment = async id => {
+        if(!confirm('To\'lovni o\'chirasizmi?')) return;
+        const { error } = await sb.from('payments').delete().eq('id', id);
+        if(error) { showToast(error.message, 'error'); return; }
+        renderFinance();
+        showToast('To\'lov o\'chirildi');
+    };
+
+    async function renderExpenses() {
+        const branchId = await currentBranchId();
+        const { data:expenses } = await sb.from('expenses').select('*').eq('branch_id', branchId).order('expense_date', { ascending:false });
+        const total = (expenses || []).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        setMain(`<div class="page-header"><h1>Xarajatlar</h1><button class="btn btn-primary" onclick="openExpenseForm()"><i class="fas fa-plus"></i> Qo'shish</button></div>
+        <div class="stats-grid"><div class="stat-card"><div class="stat-value text-danger">${formatNumber(total)} so'm</div><div class="stat-label">Jami xarajat</div></div></div>
+        <div class="card"><div class="table-wrapper"><table><thead><tr><th>Sana</th><th>Tavsif</th><th>Summa</th><th>Tur</th><th></th></tr></thead><tbody>${(expenses || []).map(e => `<tr><td data-label="Sana">${formatDate(e.expense_date)}</td><td data-label="Tavsif">${escapeHtml(e.description || '-')}</td><td data-label="Summa" style="color:#f87171;">${formatNumber(e.amount)} so'm</td><td data-label="Tur">${escapeHtml(e.expense_type || '-')}</td><td data-label=""><div class="action-icons"><div class="action-icon delete" onclick="deleteExpense('${e.id}')"><i class="fas fa-trash"></i></div></div></td></tr>`).join('') || '<tr><td colspan="5">Xarajat yo\'q</td></tr>'}</tbody></table></div></div>`);
+    }
+
+    window.openExpenseForm = async () => {
+        const branchId = await currentBranchId();
+        openModal(`<div class="modal-header"><h3 class="modal-title">Xarajat qo'shish</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="saveExpense(event)">
+            <div class="form-group"><label>Tavsif</label><input name="description" required></div>
+            <div class="form-group"><label>Summa</label><input type="number" name="amount" min="1" required></div>
+            <div class="form-group"><label>Tur</label><select name="expense_type"><option value="rent">Ijara</option><option value="salary">Maosh</option><option value="utility">Kommunal</option><option value="other">Boshqa</option></select></div>
+            <input type="hidden" name="branch_id" value="${branchId}">
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+    };
+
+    window.saveExpense = async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const { error } = await sb.from('expenses').insert({ ...data, amount:Number(data.amount || 0), expense_date:todayIso() });
+        if(error) { showToast(error.message, 'error'); return; }
+        closeModal();
+        renderExpenses();
+        showToast('Xarajat saqlandi');
+    };
+
+    window.deleteExpense = async id => {
+        if(!confirm('Xarajatni o\'chirasizmi?')) return;
+        await sb.from('expenses').delete().eq('id', id);
+        renderExpenses();
+        showToast('Xarajat o\'chirildi');
+    };
+
+    async function renderBranchFinance() {
+        const branchId = await currentBranchId();
+        const { data:branch } = await sb.from('branches').select('name').eq('id', branchId).maybeSingle();
+        const { data:groups } = await sb.from('groups').select('id').eq('branch_id', branchId);
+        const groupIds = (groups || []).map(g => g.id);
+        let payments = [];
+        if(groupIds.length) {
+            const { data } = await sb.from('payments').select('*, students(full_name), groups(name)').in('group_id', groupIds).order('payment_date', { ascending:false }).limit(50);
+            payments = data || [];
+        }
+        const { data:expenses } = await sb.from('expenses').select('*').eq('branch_id', branchId).order('expense_date', { ascending:false }).limit(50);
+        const income = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+        const expense = (expenses || []).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        setMain(`<div class="page-header"><h1>${escapeHtml(branch?.name || 'Filial')} moliyasi</h1></div>
+        <div class="stats-grid"><div class="stat-card"><div class="stat-value text-success">${formatNumber(income)} so'm</div><div class="stat-label">Daromad</div></div><div class="stat-card"><div class="stat-value text-danger">${formatNumber(expense)} so'm</div><div class="stat-label">Xarajat</div></div><div class="stat-card"><div class="stat-value">${formatNumber(income - expense)} so'm</div><div class="stat-label">Balans</div></div></div>
+        <div class="card"><h3 class="card-title">So'nggi to'lovlar</h3><div class="table-wrapper compact-table"><table><thead><tr><th>Sana</th><th>O'quvchi</th><th>Guruh</th><th>Summa</th></tr></thead><tbody>${payments.map(p => `<tr><td data-label="Sana">${formatDate(p.payment_date)}</td><td data-label="O'quvchi">${escapeHtml(p.students?.full_name || '-')}</td><td data-label="Guruh">${escapeHtml(p.groups?.name || '-')}</td><td data-label="Summa" style="color:#34d399;">${formatNumber(p.amount)} so'm</td></tr>`).join('') || '<tr><td colspan="4">To\'lovlar yo\'q</td></tr>'}</tbody></table></div></div>`);
+    }
+
+    window.loadAttendanceTable = async () => {
+        const groupId = document.getElementById('attGroup')?.value;
+        const month = parseInt(document.getElementById('attMonth')?.value);
+        const year = parseInt(document.getElementById('attYear')?.value);
+        const container = document.getElementById('attendanceTable');
+        if(!groupId || !month || !year || !container) return;
+        const { start, end } = monthRange(year, month);
+        const lessonDates = await getGroupLessonDates(groupId, year, month);
+        if(!lessonDates.length) {
+            container.innerHTML = '<div class="card text-center" style="color:var(--gray);">Bu oy uchun dars kuni topilmadi. Guruh jadvalini kiriting.</div>';
+            return;
+        }
+        const [{ data:students }, { data:attendance }, { data:performance }] = await Promise.all([
+            sb.from('group_students').select('*, students(full_name)').eq('group_id', groupId).in('status', ['active', 'frozen']),
+            sb.from('attendance').select('*').eq('group_id', groupId).gte('lesson_date', start).lte('lesson_date', end),
+            sb.from('student_performance').select('*').eq('group_id', groupId).gte('lesson_date', start).lte('lesson_date', end)
+        ]);
+        if(!students || students.length === 0) {
+            container.innerHTML = '<div class="card text-center" style="color:var(--gray);">Bu guruhda o\'quvchilar yo\'q</div>';
+            return;
+        }
+        container.innerHTML = buildAttendanceTableHtml(groupId, students, attendance, performance, lessonDates);
+    };
+
+    async function renderAttendance() {
+        const branchId = await currentBranchId();
+        const { data:groups } = await sb.from('groups').select('*').eq('branch_id', branchId).order('name');
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+        setMain(`<div class="page-header"><h1>Davomat</h1></div><div class="card">
+            <div class="form-group"><label>Guruh</label><select id="attGroup" onchange="loadAttendanceTable()"><option value="">Tanlang...</option>${(groups || []).map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('')}</select></div>
+            <div class="form-group" style="display:flex; flex-wrap:wrap; gap:12px; align-items:end;">
+                <div style="flex:1; min-width:150px;"><label>Oy</label><select id="attMonth" onchange="loadAttendanceTable()">${Array.from({ length:12 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentMonth ? 'selected' : ''}>${new Date(2024, i).toLocaleString('uz-UZ', { month:'long' })}</option>`).join('')}</select></div>
+                <div style="flex:1; min-width:120px;"><label>Yil</label><select id="attYear" onchange="loadAttendanceTable()">${[2024, 2025, 2026, 2027].map(y => `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
+                <button class="btn btn-sm btn-primary" onclick="loadAttendanceTable()"><i class="fas fa-sync-alt"></i> Yangilash</button>
+            </div>
+            <div id="attendanceTable"><div class="card text-center" style="color:var(--gray);">Guruhni tanlang</div></div>
+        </div>`);
+        if(groups?.length) {
+            document.getElementById('attGroup').value = groups[0].id;
+            window.loadAttendanceTable();
+        }
+    }
+
+    async function renderSchedule() {
+        const branchId = await currentBranchId();
+        const { data:groups } = await sb.from('groups').select('*').eq('branch_id', branchId).order('name');
+        setMain(`<div class="page-header"><h1>Dars jadvali</h1></div><div class="card"><div style="display:flex; gap:20px; flex-wrap:wrap;"><div style="flex:1; min-width:220px;"><h3 class="card-title">Guruhlar</h3>${(groups || []).map(g => `<div class="group-card" style="cursor:pointer;" onclick="showGroupSchedulePanel('${g.id}')"><div class="branch-card-info"><h3>${escapeHtml(g.name)}</h3></div></div>`).join('') || '<p style="color:var(--gray);">Guruhlar yo\'q</p>'}</div><div style="flex:2; min-width:280px;" id="scheduleDetailPanel"><div class="text-center" style="padding:40px; color:var(--gray);">Guruhni tanlang</div></div></div></div>`);
+    }
+
+    window.showGroupSchedulePanel = async groupId => {
+        const panel = document.getElementById('scheduleDetailPanel');
+        if(!panel) return;
+        panel.innerHTML = '<div class="card text-center">Yuklanmoqda...</div>';
+        const { data:schedule } = await sb.from('schedules').select('*').eq('group_id', groupId).order('day_of_week');
+        const days = ['', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'];
+        panel.innerHTML = `<div class="table-wrapper"><table><thead><tr><th>Kun</th><th>Vaqt</th><th>Xona</th><th></th></tr></thead><tbody>${(schedule || []).map(s => `<tr><td data-label="Kun">${days[s.day_of_week]}</td><td data-label="Vaqt">${String(s.start_time || '').slice(0,5)}-${String(s.end_time || '').slice(0,5)}</td><td data-label="Xona">${escapeHtml(s.room || '-')}</td><td data-label=""><div class="action-icons"><div class="action-icon delete" onclick="deleteSchedule('${s.id}', '${groupId}')"><i class="fas fa-trash"></i></div></div></td></tr>`).join('') || '<tr><td colspan="4">Jadval yo\'q</td></tr>'}</tbody></table></div><div style="margin-top:12px;"><button class="btn btn-sm btn-primary" onclick="openScheduleForm('${groupId}')"><i class="fas fa-plus"></i> Dars qo'shish</button></div>`;
+    };
+
+    async function renderDebtors() {
+        const branchId = await currentBranchId();
+        const { data:students } = await sb.from('students').select('*').eq('branch_id', branchId).eq('is_active', true).order('full_name');
+        const { data:branchGroups } = await sb.from('groups').select('id').eq('branch_id', branchId);
+        const groupIds = (branchGroups || []).map(g => g.id);
+        const debtors = [];
+        for(const s of students || []) {
+            let totalDebt = 0;
+            const { data:rels } = groupIds.length
+                ? await sb.from('group_students').select('*, groups(price, name)').eq('student_id', s.id).eq('status', 'active').in('group_id', groupIds)
+                : { data:[] };
+            for(const rel of rels || []) {
+                const price = Number(rel.groups?.price) || 0;
+                const discount = Number(rel.discount_percent) || 0;
+                const finalPrice = Math.round(price * (1 - discount / 100));
+                const { data:paidData } = await sb.from('payments').select('amount').eq('student_id', s.id).eq('group_id', rel.group_id);
+                const paid = (paidData || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                if(finalPrice - paid > 0) totalDebt += finalPrice - paid;
+            }
+            if(totalDebt > 0) debtors.push({ ...s, debt:totalDebt });
+        }
+        debtors.sort((a, b) => b.debt - a.debt);
+        setMain(`<div class="page-header"><h1>Qarzdorlar</h1></div><div class="card"><div class="table-wrapper"><table><thead><tr><th>O'quvchi</th><th>Telefon</th><th>Qarz</th><th>Amallar</th></tr></thead><tbody>${debtors.map(d => `<tr><td data-label="O'quvchi">${escapeHtml(d.full_name)}</td><td data-label="Telefon">${escapeHtml(d.phone || '-')}</td><td data-label="Qarz"><span class="badge badge-danger">${formatNumber(d.debt)} so'm</span></td><td data-label="Amallar"><button class="btn btn-sm btn-primary" onclick="openPaymentForStudent('${d.id}')"><i class="fas fa-money-bill-wave"></i> To'lov</button></td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center; color:var(--gray);">Qarzdorlar yo\'q</td></tr>'}</tbody></table></div></div>`);
+    }
+
+    window.openPaymentForStudent = async studentId => {
+        const [{ data:student }, { data:groups }] = await Promise.all([
+            sb.from('students').select('full_name').eq('id', studentId).single(),
+            sb.from('group_students').select('*, groups(name)').eq('student_id', studentId).eq('status', 'active')
+        ]);
+        openModal(`<div class="modal-header"><h3 class="modal-title">To'lov - ${escapeHtml(student?.full_name || '')}</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="savePaymentForStudent(event, '${studentId}')">
+            <input type="hidden" name="student_id" value="${studentId}">
+            <div class="form-group"><label>Guruh</label><select name="group_id" required onchange="updatePaymentDebtInfo()">${(groups || []).map(g => `<option value="${g.group_id}">${escapeHtml(g.groups?.name || '-')}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Summa</label><input type="number" name="amount" min="1" required></div>
+            <div class="form-group"><label>To'lov turi</label><select name="payment_type"><option value="cash">Naqd</option><option value="card">Karta</option><option value="click">Click</option><option value="payme">Payme</option><option value="waived">Kechirildi</option></select></div>
+            <div class="form-group" id="paymentDebtInfo" style="padding:12px; border-radius:12px; background:rgba(245,158,11,.1); color:#fbbf24; font-weight:700;">Qarz yuklanmoqda...</div>
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+        setTimeout(updatePaymentDebtInfo, 100);
+    };
+
+    window.savePaymentForStudent = async (e, studentId) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const amount = data.payment_type === 'waived' ? 0 : Number(data.amount || 0);
+        if(data.payment_type !== 'waived' && amount <= 0) {
+            showToast('To\'lov summasini kiriting', 'error');
+            return;
+        }
+        const { error } = await sb.from('payments').insert({
+            student_id:studentId,
+            group_id:data.group_id,
+            amount,
+            payment_type:data.payment_type,
+            payment_date:todayIso()
+        });
+        if(error) {
+            showToast('To\'lov saqlanmadi: ' + error.message, 'error');
+            return;
+        }
+        closeModal();
+        renderDebtors();
+        showToast('To\'lov saqlandi');
+    };
+
+    async function renderTeacherSalaries() {
+        const branchId = await currentBranchId();
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+        setMain(`<div class="page-header"><h1>O'qituvchi oyliklari</h1></div>
+        <div class="card">
+            <div class="form-group" style="display:flex; flex-wrap:wrap; gap:12px; align-items:end;">
+                <div style="flex:1; min-width:150px;"><label>Oy</label><select id="managerSalaryMonth" onchange="loadManagerTeacherSalaries()">${Array.from({ length:12 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentMonth ? 'selected' : ''}>${new Date(2024, i).toLocaleString('uz-UZ', { month:'long' })}</option>`).join('')}</select></div>
+                <div style="flex:1; min-width:120px;"><label>Yil</label><select id="managerSalaryYear" onchange="loadManagerTeacherSalaries()">${[2024, 2025, 2026, 2027].map(y => `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
+                <button class="btn btn-sm btn-primary" onclick="loadManagerTeacherSalaries()"><i class="fas fa-sync-alt"></i> Yangilash</button>
+            </div>
+            <div id="managerTeacherSalaryList">Yuklanmoqda...</div>
+        </div>`);
+
+        window.loadManagerTeacherSalaries = async () => {
+            const month = parseInt(document.getElementById('managerSalaryMonth')?.value) || currentMonth;
+            const year = parseInt(document.getElementById('managerSalaryYear')?.value) || currentYear;
+            const { data:teachers } = await sb.from('users').select('*').eq('branch_id', branchId).eq('role', 'teacher').order('full_name');
+            const container = document.getElementById('managerTeacherSalaryList');
+            if(!teachers || teachers.length === 0) {
+                container.innerHTML = '<div class="text-center" style="color:var(--gray); padding:30px;">O\'qituvchilar mavjud emas</div>';
+                return;
+            }
+            let html = '';
+            for(const teacher of teachers) {
+                const summary = await calculateTeacherSalaryForMonth(teacher.id, branchId, year, month);
+                const groupDetails = summary.groups.map(g => `<p style="margin-bottom:4px;"><strong>${escapeHtml(g.name)}:</strong> <span style="color:#34d399;">${formatNumber(g.revenue)} so'm</span></p>`).join('');
+                html += `<div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+                        <h3 class="card-title" style="margin:0;">${escapeHtml(teacher.full_name)} <small style="color:var(--gray); font-size:13px;">(${teacher.salary_type === 'percent' ? (teacher.salary_percent || 0) + '%' : 'Qat\'iy maosh'})</small></h3>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;"><button class="btn btn-sm" onclick="editTeacherSalary('${teacher.id}')"><i class="fas fa-edit"></i> Sozlamalar</button><button class="btn btn-sm btn-warning" onclick="payTeacherSalary('${teacher.id}', ${summary.salaryCalculated}, ${summary.paidAmount})"><i class="fas fa-money-bill-wave"></i> To'lash</button></div>
+                    </div>
+                    ${groupDetails || '<p style="color:var(--gray);">Bu oyda guruh daromadi yo\'q</p>'}
+                    <div class="stats-grid" style="margin-top:12px;">
+                        <div class="stat-card"><div class="stat-value text-success" style="font-size:20px;">${formatNumber(summary.totalRevenue)} so'm</div><div class="stat-label">Guruh daromadi</div></div>
+                        <div class="stat-card"><div class="stat-value" style="color:#60a5fa; font-size:20px;">${formatNumber(summary.salaryCalculated)} so'm</div><div class="stat-label">Hisoblangan</div></div>
+                        <div class="stat-card"><div class="stat-value" style="color:#34d399; font-size:20px;">${formatNumber(summary.paidAmount)} so'm</div><div class="stat-label">Berilgan</div></div>
+                        <div class="stat-card"><div class="stat-value" style="color:${summary.remaining > 0 ? '#f87171' : '#34d399'}; font-size:20px;">${formatNumber(summary.remaining)} so'm</div><div class="stat-label">Qolgan qarz</div></div>
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        };
+        await window.loadManagerTeacherSalaries();
+    }
+
+    window.editTeacherSalary = async teacherId => {
+        const { data:teacher } = await sb.from('users').select('*').eq('id', teacherId).single();
+        openModal(`<div class="modal-header"><h3 class="modal-title">Oylik sozlamalari</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <form onsubmit="saveTeacherSalarySettings(event, '${teacherId}')">
+            <p style="margin-bottom:16px; color:var(--gray);">${escapeHtml(teacher.full_name)}</p>
+            <div class="form-group"><label>Maosh turi</label><select name="salary_type" id="salaryType" onchange="toggleSalaryType()"><option value="fixed" ${teacher.salary_type === 'fixed' ? 'selected' : ''}>Qat'iy maosh</option><option value="percent" ${teacher.salary_type === 'percent' ? 'selected' : ''}>Foiz (%)</option></select></div>
+            <div class="form-group" id="fixedSalary"><label>Oylik maosh</label><input type="number" name="salary" value="${teacher.salary || 0}"></div>
+            <div class="form-group" id="percentInput"><label>Foiz (%)</label><input type="number" name="salary_percent" min="0" max="100" value="${teacher.salary_percent || 0}"></div>
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div>
+        </form>`);
+        window.toggleSalaryType = () => {
+            const type = document.getElementById('salaryType')?.value;
+            document.getElementById('fixedSalary').classList.toggle('hidden', type !== 'fixed');
+            document.getElementById('percentInput').classList.toggle('hidden', type !== 'percent');
+        };
+        window.toggleSalaryType();
+    };
+
+    window.saveTeacherSalarySettings = async (e, teacherId) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const { error } = await sb.from('users').update({
+            salary_type:data.salary_type,
+            salary:data.salary_type === 'fixed' ? Number(data.salary || 0) : null,
+            salary_percent:data.salary_type === 'percent' ? Number(data.salary_percent || 0) : null
+        }).eq('id', teacherId);
+        if(error) { showToast(error.message, 'error'); return; }
+        closeModal();
+        renderTeacherSalaries();
+        showToast('Sozlamalar saqlandi');
+    };
+
+    window.payTeacherSalary = async (teacherId, calculated, alreadyPaid = 0) => {
+        const { data:teacher } = await sb.from('users').select('*').eq('id', teacherId).single();
+        const remaining = Math.max(0, Number(calculated || 0) - Number(alreadyPaid || 0));
+        openModal(`<div class="modal-header"><h3 class="modal-title">Oylik to'lash</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div>
+        <p style="margin-bottom:16px; color:var(--gray);">${escapeHtml(teacher.full_name)}</p>
+        <div class="stats-grid"><div class="stat-card"><div class="stat-value" style="font-size:18px; color:#60a5fa;">${formatNumber(calculated)} so'm</div><div class="stat-label">Hisoblangan</div></div><div class="stat-card"><div class="stat-value" style="font-size:18px; color:#34d399;">${formatNumber(alreadyPaid)} so'm</div><div class="stat-label">Berilgan</div></div><div class="stat-card"><div class="stat-value" style="font-size:18px; color:${remaining > 0 ? '#f87171' : '#34d399'};">${formatNumber(remaining)} so'm</div><div class="stat-label">Qoldiq</div></div></div>
+        <form onsubmit="saveTeacherSalary(event, '${teacherId}')">
+            <div class="form-group"><label>Summa</label><input type="number" name="amount" min="1" value="${remaining || calculated}" required></div>
+            <div class="form-group"><label>Sana</label><input type="date" name="expense_date" value="${todayIso()}" required></div>
+            <div class="form-group"><label>Izoh</label><input name="description" value="Oylik maosh"></div>
+            <div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">To'lash</button></div>
+        </form>`);
+    };
+
+    window.saveTeacherSalary = async (e, teacherId) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const branchId = await currentBranchId();
+        const { error } = await sb.from('expenses').insert({
+            amount:Number(data.amount || 0),
+            description:data.description || 'Oylik maosh',
+            expense_type:'salary',
+            branch_id:branchId,
+            created_by:teacherId,
+            expense_date:data.expense_date || todayIso()
+        });
+        if(error) { showToast('Oylik saqlanmadi: ' + error.message, 'error'); return; }
+        closeModal();
+        renderTeacherSalaries();
+        showToast('Oylik to\'landi');
+    };
+
+    async function renderReports() {
+        const role = currentUser.role;
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+        let branchIds = [];
+        const branchesMap = {};
+        if(role === 'director') {
+            const { data:branches } = await sb.from('branches').select('id, name');
+            branchIds = (branches || []).map(b => b.id);
+            (branches || []).forEach(b => branchesMap[b.id] = b.name);
+        } else if(role === 'super_admin') {
+            const { data:branches } = await sb.from('branches').select('id, name').eq('created_by', currentUser.id);
+            branchIds = (branches || []).map(b => b.id);
+            (branches || []).forEach(b => branchesMap[b.id] = b.name);
+        } else {
+            const bid = await currentBranchId();
+            branchIds = [bid];
+            branchesMap[bid] = currentBranch?.name || 'Filial';
+        }
+        setMain(`<div class="page-header"><h1>Hisobotlar</h1></div>
+        <div class="card"><div class="form-group" style="display:flex; gap:12px; flex-wrap:wrap;"><select id="reportYear" onchange="updateReportTable()">${[2024, 2025, 2026, 2027].map(y => `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`).join('')}</select><select id="reportMonth" onchange="updateReportTable()"><option value="all">Butun yil</option>${Array.from({ length:12 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentMonth ? 'selected' : ''}>${new Date(2024, i).toLocaleString('uz-UZ', { month:'long' })}</option>`).join('')}</select></div><div id="reportTableContainer">Yuklanmoqda...</div></div>`);
+        window.updateReportTable = async () => {
+            const year = document.getElementById('reportYear').value;
+            const month = document.getElementById('reportMonth').value;
+            let startDate;
+            let endDate;
+            if(month === 'all') {
+                startDate = `${year}-01-01`;
+                endDate = `${year}-12-31`;
+            } else {
+                const r = monthRange(Number(year), Number(month));
+                startDate = r.start;
+                endDate = r.end;
+            }
+            const { data:groups } = await sb.from('groups').select('id, branch_id').in('branch_id', branchIds);
+            const groupIds = (groups || []).map(g => g.id);
+            const groupBranchMap = {};
+            (groups || []).forEach(g => groupBranchMap[g.id] = g.branch_id);
+            const [{ data:payments }, { data:expenses }] = await Promise.all([
+                groupIds.length ? sb.from('payments').select('amount, group_id').in('group_id', groupIds).gte('payment_date', startDate).lte('payment_date', endDate) : Promise.resolve({ data:[] }),
+                sb.from('expenses').select('amount, branch_id').in('branch_id', branchIds).gte('expense_date', startDate).lte('expense_date', endDate)
+            ]);
+            const branchIncome = {};
+            const branchExpense = {};
+            branchIds.forEach(id => { branchIncome[id] = 0; branchExpense[id] = 0; });
+            (payments || []).forEach(p => {
+                const bid = groupBranchMap[p.group_id];
+                if(bid) branchIncome[bid] += Number(p.amount) || 0;
+            });
+            (expenses || []).forEach(e => {
+                if(e.branch_id) branchExpense[e.branch_id] += Number(e.amount) || 0;
+            });
+            let totalIncome = 0;
+            let totalExpense = 0;
+            const rows = branchIds.map(bid => {
+                const inc = branchIncome[bid] || 0;
+                const exp = branchExpense[bid] || 0;
+                totalIncome += inc;
+                totalExpense += exp;
+                return `<tr><td data-label="Filial">${escapeHtml(branchesMap[bid] || '-')}</td><td data-label="Daromad" style="color:#34d399;">${formatNumber(inc)} so'm</td><td data-label="Xarajat" style="color:#f87171;">${formatNumber(exp)} so'm</td><td data-label="Foyda">${formatNumber(inc - exp)} so'm</td></tr>`;
+            }).join('');
+            document.getElementById('reportTableContainer').innerHTML = `<div class="stats-grid"><div class="stat-card"><div class="stat-value text-success">${formatNumber(totalIncome)} so'm</div><div class="stat-label">Daromad</div></div><div class="stat-card"><div class="stat-value text-danger">${formatNumber(totalExpense)} so'm</div><div class="stat-label">Xarajat</div></div><div class="stat-card"><div class="stat-value">${formatNumber(totalIncome - totalExpense)} so'm</div><div class="stat-label">Foyda</div></div></div><div class="table-wrapper"><table><thead><tr><th>Filial</th><th>Daromad</th><th>Xarajat</th><th>Foyda</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        };
+        window.updateReportTable();
+    }
+
+    async function renderLeads() {
+        const { data:leads } = await sb.from('leads').select('*').order('created_at', { ascending:false });
+        setMain(`<div class="page-header"><h1>Murojaatlar</h1><button class="btn btn-primary" onclick="openLeadForm()"><i class="fas fa-plus"></i> Yangi</button></div>
+        <div class="card"><div class="table-wrapper"><table><thead><tr><th>Ism</th><th>Telefon</th><th>Fan</th><th>Holat</th><th>Sana</th></tr></thead><tbody>${(leads || []).map(l => `<tr><td data-label="Ism">${escapeHtml(l.full_name)}</td><td data-label="Telefon">${escapeHtml(l.phone)}</td><td data-label="Fan">${escapeHtml(l.interested_subject || '-')}</td><td data-label="Holat"><span class="badge badge-info">${escapeHtml(l.status || 'new')}</span></td><td data-label="Sana">${formatDate(l.created_at)}</td></tr>`).join('') || '<tr><td colspan="5">Murojaatlar yo\'q</td></tr>'}</tbody></table></div></div>`);
+    }
+    window.openLeadForm = () => {
+        openModal(`<div class="modal-header"><h3 class="modal-title">Yangi murojaat</h3><div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div></div><form onsubmit="saveLead(event)"><div class="form-group"><label>Ism</label><input name="full_name" required></div><div class="form-group"><label>Telefon</label><input name="phone" required></div><div class="form-group"><label>Fan</label><input name="interested_subject"></div><div class="form-group"><label>Izoh</label><textarea name="comment" rows="3"></textarea></div><div class="modal-footer"><button type="button" class="btn" onclick="closeModal()">Bekor</button><button class="btn btn-primary">Saqlash</button></div></form>`);
+    };
+    window.saveLead = async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        await sb.from('leads').insert({ ...data, status:'new' });
+        closeModal();
+        renderLeads();
+        showToast('Murojaat qo\'shildi');
+    };
+
+    async function renderArchive() {
+        const branchId = await currentBranchId();
+        const { data:students } = await sb.from('students').select('*').eq('branch_id', branchId).eq('is_active', false).order('full_name');
+        setMain(`<div class="page-header"><h1>Arxiv</h1></div><div class="card"><h3 class="card-title">Arxivlangan o'quvchilar</h3><div class="table-wrapper"><table><thead><tr><th>Ism</th><th>Telefon</th><th>Amallar</th></tr></thead><tbody>${(students || []).map(s => `<tr><td data-label="Ism">${escapeHtml(s.full_name)}</td><td data-label="Telefon">${escapeHtml(s.phone || '-')}</td><td data-label="Amallar"><button class="btn btn-sm" onclick="restoreStudent('${s.id}')"><i class="fas fa-undo"></i> Qaytarish</button></td></tr>`).join('') || '<tr><td colspan="3">Arxiv bo\'sh</td></tr>'}</tbody></table></div></div>`);
+    }
+    window.restoreStudent = async id => {
+        await sb.from('students').update({ is_active:true }).eq('id', id);
+        renderArchive();
+        showToast('O\'quvchi qaytarildi');
+    };
+
+    async function renderTeacherDashboard() {
+        const { data:groups } = await sb.from('groups').select('*').eq('teacher_id', currentUser.id).eq('status', 'active').order('name');
+        let studentCount = 0;
+        for(const g of groups || []) {
+            const { count } = await sb.from('group_students').select('*', { count:'exact', head:true }).eq('group_id', g.id).eq('status', 'active');
+            studentCount += count || 0;
+        }
+        setMain(`<div class="page-header"><h1>${escapeHtml(currentUser.full_name)}</h1></div>
+        <div class="stats-grid"><div class="stat-card"><div class="stat-value">${groups?.length || 0}</div><div class="stat-label">Guruhlarim</div></div><div class="stat-card"><div class="stat-value">${studentCount}</div><div class="stat-label">O'quvchilarim</div></div></div>
+        <div class="card"><h3 class="card-title">Mening guruhlarim</h3><div class="table-wrapper"><table><thead><tr><th>Guruh</th><th>Status</th></tr></thead><tbody>${(groups || []).map(g => `<tr><td data-label="Guruh">${escapeHtml(g.name)}</td><td data-label="Status"><span class="badge badge-success">${escapeHtml(g.status || 'active')}</span></td></tr>`).join('') || '<tr><td colspan="2">Guruhlar yo\'q</td></tr>'}</tbody></table></div></div>`);
+    }
+
+    async function renderTeacherAttendance() {
+        const { data:groups } = await sb.from('groups').select('id, name').eq('teacher_id', currentUser.id).eq('status', 'active').order('name');
+        if(!groups || groups.length === 0) {
+            setMain('<div class="page-header"><h1>Davomat va o\'zlashtirish</h1></div><div class="card text-center" style="color:var(--gray);">Sizga biriktirilgan faol guruhlar mavjud emas.</div>');
+            return;
+        }
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+        setMain(`<div class="page-header"><h1>Davomat va o'zlashtirish</h1></div><div class="card">
+            <div class="form-group" style="display:flex; flex-wrap:wrap; gap:12px; align-items:end;">
+                <div style="flex:2; min-width:200px;"><label>Guruh</label><select id="teacherGroupSelect" onchange="loadTeacherAttendanceTable()">${groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('')}</select></div>
+                <div style="flex:1; min-width:140px;"><label>Oy</label><select id="teacherMonthSelect" onchange="loadTeacherAttendanceTable()">${Array.from({ length:12 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentMonth ? 'selected' : ''}>${new Date(2024, i).toLocaleString('uz-UZ', { month:'long' })}</option>`).join('')}</select></div>
+                <div style="flex:1; min-width:120px;"><label>Yil</label><select id="teacherYearSelect" onchange="loadTeacherAttendanceTable()">${[2024, 2025, 2026, 2027].map(y => `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
+                <button class="btn btn-sm btn-primary" onclick="loadTeacherAttendanceTable()"><i class="fas fa-sync-alt"></i></button>
+            </div>
+            <div id="teacherAttendanceTableContainer">Yuklanmoqda...</div>
+        </div>`);
+
+        window.loadTeacherAttendanceTable = async () => {
+            const groupId = document.getElementById('teacherGroupSelect')?.value;
+            const container = document.getElementById('teacherAttendanceTableContainer');
+            if(!groupId || !container) return;
+            currentTeacherGroupId = groupId;
+            const month = parseInt(document.getElementById('teacherMonthSelect')?.value);
+            const year = parseInt(document.getElementById('teacherYearSelect')?.value);
+            const { start, end } = monthRange(year, month);
+            const lessonDates = await getGroupLessonDates(groupId, year, month);
+            if(!lessonDates.length) {
+                container.innerHTML = '<div class="card text-center" style="color:var(--gray);">Bu oy uchun dars kuni topilmadi. Guruh jadvalini kiriting.</div>';
+                return;
+            }
+            const [{ data:studentsRel }, { data:attendance }, { data:performance }] = await Promise.all([
+                sb.from('group_students').select('*, students(full_name)').eq('group_id', groupId).in('status', ['active', 'frozen']),
+                sb.from('attendance').select('*').eq('group_id', groupId).gte('lesson_date', start).lte('lesson_date', end),
+                sb.from('student_performance').select('*').eq('group_id', groupId).gte('lesson_date', start).lte('lesson_date', end)
+            ]);
+            if(!studentsRel || studentsRel.length === 0) {
+                container.innerHTML = '<div class="card text-center" style="color:var(--gray);">Bu guruhda o\'quvchilar yo\'q</div>';
+                return;
+            }
+            container.innerHTML = buildAttendanceTableHtml(groupId, studentsRel, attendance, performance, lessonDates);
+        };
+        window.loadTeacherAttendanceTable();
+    }
+
+    async function renderTeacherSalary() {
+        const branchId = currentUser.branch_id || currentBranch?.id;
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+        setMain(`<div class="page-header"><h1>Mening maoshim</h1></div>
+        <div class="card">
+            <div class="form-group" style="display:flex; flex-wrap:wrap; gap:12px; align-items:end;">
+                <div style="flex:1; min-width:150px;"><label>Oy</label><select id="teacherSalaryMonth" onchange="loadTeacherSalaryPanel()">${Array.from({ length:12 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentMonth ? 'selected' : ''}>${new Date(2024, i).toLocaleString('uz-UZ', { month:'long' })}</option>`).join('')}</select></div>
+                <div style="flex:1; min-width:120px;"><label>Yil</label><select id="teacherSalaryYear" onchange="loadTeacherSalaryPanel()">${[2024, 2025, 2026, 2027].map(y => `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`).join('')}</select></div>
+                <button class="btn btn-sm btn-primary" onclick="loadTeacherSalaryPanel()"><i class="fas fa-sync-alt"></i> Yangilash</button>
+            </div>
+            <div id="teacherSalaryPanel">Yuklanmoqda...</div>
+        </div>`);
+
+        window.loadTeacherSalaryPanel = async () => {
+            const month = parseInt(document.getElementById('teacherSalaryMonth')?.value) || currentMonth;
+            const year = parseInt(document.getElementById('teacherSalaryYear')?.value) || currentYear;
+            const summary = await calculateTeacherSalaryForMonth(currentUser.id, branchId, year, month);
+            const payRows = summary.salaryPays.map(p => `<tr><td data-label="Sana">${formatDate(p.expense_date)}</td><td data-label="Summa" style="color:#34d399;">${formatNumber(p.amount)} so'm</td><td data-label="Izoh">${escapeHtml(p.description || '-')}</td></tr>`).join('');
+            const reportMonths = [];
+            for(let i = 0; i < 12; i++) {
+                const dt = new Date(year, month - 1 - i, 1);
+                reportMonths.push({ year:dt.getFullYear(), month:dt.getMonth() + 1 });
+            }
+            const reportData = await Promise.all(reportMonths.map(item => calculateTeacherSalaryForMonth(currentUser.id, branchId, item.year, item.month).then(summary => ({ ...item, summary }))));
+            const reportRows = reportData.map(item => `<tr><td data-label="Oy">${monthNameUz(item.year, item.month)}</td><td data-label="Hisoblangan" style="color:#60a5fa;">${formatNumber(item.summary.salaryCalculated)} so'm</td><td data-label="Berilgan" style="color:#34d399;">${formatNumber(item.summary.paidAmount)} so'm</td><td data-label="Qolgan" style="color:${item.summary.remaining > 0 ? '#f87171' : '#34d399'};">${formatNumber(item.summary.remaining)} so'm</td></tr>`).join('');
+            document.getElementById('teacherSalaryPanel').innerHTML = `<div class="stats-grid">
+                <div class="stat-card"><div class="stat-value" style="color:#60a5fa;">${formatNumber(summary.salaryCalculated)} so'm</div><div class="stat-label">Hisoblangan maosh</div></div>
+                <div class="stat-card"><div class="stat-value text-success">${formatNumber(summary.paidAmount)} so'm</div><div class="stat-label">Berilgan summa</div></div>
+                <div class="stat-card"><div class="stat-value" style="color:${summary.remaining > 0 ? '#f87171' : '#34d399'};">${formatNumber(summary.remaining)} so'm</div><div class="stat-label">Qolgan qarz</div></div>
+                <div class="stat-card"><div class="stat-value" style="color:${summary.advance > 0 ? '#f59e0b' : '#94a3b8'};">${formatNumber(summary.advance)} so'm</div><div class="stat-label">Oldindan berilgan</div></div>
+            </div>
+            <div class="card"><h3 class="card-title">${monthNameUz(year, month)} to'lovlari</h3><div class="table-wrapper"><table><thead><tr><th>Sana</th><th>Summa</th><th>Izoh</th></tr></thead><tbody>${payRows || '<tr><td colspan="3" style="text-align:center; color:var(--gray);">Bu oyda to\'lov yo\'q</td></tr>'}</tbody></table></div></div>
+            <div class="card" style="margin-bottom:0;"><h3 class="card-title">12 oylik hisobot</h3><div class="table-wrapper"><table><thead><tr><th>Oy</th><th>Hisoblangan</th><th>Berilgan</th><th>Qolgan</th></tr></thead><tbody>${reportRows}</tbody></table></div></div>`;
+        };
+        await window.loadTeacherSalaryPanel();
+    }
+
+    async function renderStudentDashboard() {
+        const { data:groups } = await sb.from('group_students').select('*, groups(name, price)').eq('student_id', currentUser.id).eq('status', 'active');
+        setMain(`<div class="page-header"><h1>${escapeHtml(currentUser.full_name)}</h1><p style="color:var(--gray);">O'quvchi paneli</p></div><div class="stats-grid"><div class="stat-card"><div class="stat-value">${groups?.length || 0}</div><div class="stat-label">Guruhlarim</div></div></div><div class="card"><h3 class="card-title">Mening guruhlarim</h3>${(groups || []).map(g => `<div style="padding:10px 0; border-bottom:1px solid var(--border-color);"><strong>${escapeHtml(g.groups?.name || '-')}</strong> <span class="muted-small">${formatNumber(g.groups?.price || 0)} so'm/oy</span></div>`).join('') || '<p style="color:var(--gray);">Guruh yo\'q</p>'}</div>`);
+    }
+
+    async function renderStudentSchedule() {
+        const { data:groups } = await sb.from('group_students').select('*, groups(id, name)').eq('student_id', currentUser.id).eq('status', 'active');
+        let html = `<div class="page-header"><h1>Dars jadvalim</h1></div>`;
+        const days = ['', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'];
+        for(const rel of groups || []) {
+            const { data:schedule } = await sb.from('schedules').select('*').eq('group_id', rel.groups.id).order('day_of_week');
+            html += `<div class="card"><h3 class="card-title">${escapeHtml(rel.groups?.name || '-')}</h3>${(schedule || []).map(s => `<div style="padding:8px 0; border-bottom:1px solid var(--border-color);"><strong>${days[s.day_of_week]}</strong> - ${String(s.start_time || '').slice(0,5)}-${String(s.end_time || '').slice(0,5)} ${s.room ? '(' + escapeHtml(s.room) + ')' : ''}</div>`).join('') || '<p style="color:var(--gray);">Jadval yo\'q</p>'}</div>`;
+        }
+        setMain(html);
+    }
+
+    async function renderStudentAttendance() {
+        const [{ data:attendance }, { data:performance }] = await Promise.all([
+            sb.from('attendance').select('*, groups(name)').eq('student_id', currentUser.id).order('lesson_date', { ascending:false }).limit(80),
+            sb.from('student_performance').select('*').eq('student_id', currentUser.id).order('lesson_date', { ascending:false }).limit(80)
+        ]);
+        setMain(`<div class="page-header"><h1>Davomatim</h1></div><div class="card"><div class="table-wrapper"><table><thead><tr><th>Sana</th><th>Guruh</th><th>Holat</th><th>O'zlashtirish</th></tr></thead><tbody>${(attendance || []).map(a => {
+            const perf = (performance || []).find(p => p.lesson_date === a.lesson_date && p.group_id === a.group_id);
+            return `<tr><td data-label="Sana">${formatDate(a.lesson_date)}</td><td data-label="Guruh">${escapeHtml(a.groups?.name || '-')}</td><td data-label="Holat"><span class="badge ${a.status === 'present' ? 'badge-success' : a.status === 'late' ? 'badge-warning' : 'badge-danger'}">${a.status === 'present' ? 'Keldi' : a.status === 'late' ? 'Kechikdi' : 'Kelmadi'}</span></td><td data-label="O'zlashtirish">${perf ? `<span class="badge ${perf.percentage >= 70 ? 'badge-success' : perf.percentage >= 40 ? 'badge-warning' : 'badge-danger'}">${perf.percentage}%</span>` : '-'}</td></tr>`;
+        }).join('') || '<tr><td colspan="4">Davomat yo\'q</td></tr>'}</tbody></table></div></div>`);
+    }
+
+    async function renderStudentPayments() {
+        const { data:payments } = await sb.from('payments').select('*, groups(name)').eq('student_id', currentUser.id).order('payment_date', { ascending:false });
+        const total = (payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+        setMain(`<div class="page-header"><h1>To'lovlarim</h1></div><div class="card"><div class="table-wrapper"><table><thead><tr><th>Sana</th><th>Guruh</th><th>Summa</th><th>Tur</th></tr></thead><tbody>${(payments || []).map(p => `<tr><td data-label="Sana">${formatDate(p.payment_date)}</td><td data-label="Guruh">${escapeHtml(p.groups?.name || '-')}</td><td data-label="Summa" style="color:#34d399;">${formatNumber(p.amount)} so'm</td><td data-label="Tur">${getPaymentTypeLabel(p.payment_type)}</td></tr>`).join('') || '<tr><td colspan="4">To\'lovlar yo\'q</td></tr>'}</tbody></table></div><div class="stat-card" style="margin-top:14px; text-align:right;"><strong>Jami to\'langan: ${formatNumber(total)} so'm</strong></div></div>`);
+    }
+
+    showLoginModal();
+})();
+</script>
+</body>
+</html>
